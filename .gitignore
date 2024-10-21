@@ -5,3 +5,4 @@ chromedriver
 *.pyc
 .DS_Store
 drop_bin
+outputs/
