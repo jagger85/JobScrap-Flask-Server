@@ -1,0 +1,7 @@
+.vscode
+cspell.json
+chromedriver
+.env
+*.pyc
+.DS_Store
+drop_bin
