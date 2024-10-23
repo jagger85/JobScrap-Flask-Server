@@ -6,3 +6,4 @@ chromedriver
 .DS_Store
 drop_bin
 outputs/
+output/
