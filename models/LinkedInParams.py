@@ -1,5 +1,5 @@
-from dataclasses import dataclass
-from typing import List, Optional, Dict
+from dataclasses import dataclass, field
+from typing import Optional, Dict
 from enum import Enum
 
 class TimeRange(Enum):
@@ -27,33 +27,17 @@ class Remote(Enum):
     REMOTE = "Remote"
     HYBRID = "Hybrid"
 
-@dataclass
+@dataclass(frozen=True)
 class LinkedInParams:
 
     location: str
-    keywords: List[str]
-    country: str
-    time_range: Optional[TimeRange] = None
-    job_type: Optional[JobType] = None
-    experience_level: Optional[ExperienceLevel] = None
-    remote: Optional[Remote] = None
-    company: Optional[str] = None
-
-    def to_dict(self) -> Dict:
-        return {
-            "location": self.location,
-            "keyword": ', '.join(self.keywords),
-            "country": self.country,
-            "time_range": self.time_range.value if self.time_range else "",
-            "job_type": self.job_type.value if self.job_type else "",
-            "experience_level": self.experience_level.value if self.experience_level else "",
-            "remote": self.remote.value if self.remote else "",
-            "company": self.company if self.company else ""
-        }
-##Original
-##{"location":"New York","keyword":"data analyst","country":"US","time_range":"Past 24 hours","job_type":"Part-time","experience_level":"Entry level","remote":"Remote","company":""}
-##Personal
-##{'location': 'New York', 'keyword': 'data analyst', 'country': 'US', 'time_range': 'Past 24 hours', 'job_type': 'Part-time', 'experience_level': 'Entry level', 'remote': 'Remote', 'company': ''}
+    keywords: str
+    time_range: Optional[TimeRange] = ""
+    job_type: Optional[JobType] = ""
+    experience_level: Optional[ExperienceLevel] = ""
+    remote: Optional[Remote] = ""
+    company: Optional[str] = ""
+    country: str = field(default='PH', init=False)
 
     def __post_init__(self):
         if self.time_range and not isinstance(self.time_range, TimeRange):
@@ -64,3 +48,19 @@ class LinkedInParams:
             raise ValueError(f"experience_level must be an instance of ExperienceLevel Enum, got {type(self.experience_level)}")
         if self.remote and not isinstance(self.remote, Remote):
             raise ValueError(f"remote must be an instance of Remote Enum, got {type(self.remote)}")
+    
+   
+    def to_dict(self) -> Dict:
+        return {
+            "location": self.location,
+            "keyword": self.keywords,
+            "country": self.country,
+            "time_range": self.time_range.value if self.time_range else "",
+            "job_type": self.job_type.value if self.job_type else "",
+            "experience_level": self.experience_level.value if self.experience_level else "",
+            "remote": self.remote.value if self.remote else "",
+            "company": self.company if self.company else ""
+        }
+
+    def __dict__(self):
+        return self.to_dict()
