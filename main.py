@@ -1,4 +1,4 @@
-from BrightPioneer import BrightPioneer
+from brightdata.BrightPioneer import BrightPioneer
 from models.LinkedInParams import LinkedInParams, TimeRange
 from models.IndeedParams import IndeedParams
 from logger import indeed_logger

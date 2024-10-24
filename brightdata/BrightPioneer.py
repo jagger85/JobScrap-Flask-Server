@@ -1,5 +1,5 @@
 from transitions import Machine
-from brightdata_api import BrightDataClient
+from brightdata.brightdata_api import BrightDataClient
 from models import LinkedInParams, IndeedParams
 import time
 from typing import Union
@@ -112,7 +112,7 @@ class BrightPioneer():
             self.error_occurred(f'Exception during data processing: {str(e)}')
 
     def on_enter_sending_result(self):
-        log.info('🎉🎉🎉🎉 we reached the final stage lol')
+        log.info('🎉🎉🎉🎉 we reached the final stage!')
         
     def on_enter_error(self,msg):
         log.error(msg)
