@@ -50,4 +50,4 @@ def get_logger(name):
 app_logger = get_logger('App')
 linkedin_logger = get_logger('LinkedIn')
 indeed_logger = get_logger('Indeed')
-file_handler = get_logger('File handler')
+file_logger = get_logger('File handler')

@@ -1,7 +1,6 @@
 from contextlib import contextmanager
 import os
-from typing import TextIO
-from .file_decorators import log_file_operation
+from typing import TextIO, Generator
 
 class FileContext:
     """
@@ -11,7 +10,7 @@ class FileContext:
     It ensures proper file management even in case of exceptions and logs file operations.
 
     Methods:
-        safe_open(filepath: str, mode: str = 'r') -> TextIO:
+        safe_open(filepath: str, mode: str = 'r') -> Generator[TextIO, None, None]:
             Safely opens a file and yields a file object for use in a with statement.
 
     Raises:
@@ -25,8 +24,7 @@ class FileContext:
     """
 
     @contextmanager
-    @log_file_operation
-    def safe_open(self, filepath: str, mode: str = 'r') -> TextIO:
+    def safe_open(self, filepath: str, mode: str = 'r') -> Generator[TextIO, None, None]:
         """
         Safely open and handle files using context manager.
         
