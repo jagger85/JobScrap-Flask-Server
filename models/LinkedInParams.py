@@ -21,7 +21,7 @@ class JobType(Enum):
 class ExperienceLevel(Enum):
     INTERNSHIP = "Internship"
     ENTRY_LEVEL = "Entry level"
-    ASSOCIATE = "Asociate"
+    ASSOCIATE = "Associate"
     MID_SENIOR_LEVEL = "Mid-Senior level"
     DIRECTOR = "Director"
 

@@ -56,7 +56,7 @@ class BrightPioneer:
             response = client.request_snapshot(self.params)
             if response.get("status") == "success":
                 self.dataset_id = response.get("dataset_id")
-                log.info(f"Dataset request successful")
+                log.info("Dataset request successful")
                 self.wait_data()
             elif response.get("status") == "error":
                 error_message = response.get("message", "Unknown error occurred")
@@ -73,7 +73,7 @@ class BrightPioneer:
         max_wait_time = 1000  # 4 minutes in seconds
         check_interval = 60  # Check every 30 seconds
         elapsed_time = 0
-        log.info(f"Waiting for data this can take several minutes")
+        log.info("Waiting for data this can take several minutes")
 
         while elapsed_time < max_wait_time:
             log.info(f"Elapsed time: {elapsed_time} seconds")
