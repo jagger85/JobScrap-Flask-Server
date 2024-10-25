@@ -5,6 +5,7 @@ from models.LinkedInParams import LinkedInParams
 from dotenv import load_dotenv
 from file_handler.file_manager import FileManager
 
+
 class BrightDataClient:
     """
     A client for interacting with the Bright Data API.
@@ -31,25 +32,23 @@ class BrightDataClient:
     """
 
     def __init__(self):
-
         global save
         save = FileManager()
 
         load_dotenv()
         API_KEY = os.getenv("BRIGHT")
-        
+
         global BASE_URL
         BASE_URL = "https://api.brightdata.com/datasets/v3"
 
-        
         self.snapshot_id = None
         self.headers = {
-            'Authorization': f'Bearer {API_KEY}',
-            'Content-Type': 'application/json'
+            "Authorization": f"Bearer {API_KEY}",
+            "Content-Type": "application/json",
         }
 
-    #CALLS
-    #Request the platform to scrap and create a snapshot
+    # CALLS
+    # Request the platform to scrap and create a snapshot
     def request_snapshot(self, params: LinkedInParams | IndeedParams):
         """
         Request the platform to scrape and create a snapshot.
@@ -85,49 +84,48 @@ class BrightDataClient:
 
         id_trigger = {
             LinkedInParams: "gd_lpfll7v5hcqtkxl6l",
-            IndeedParams: "gd_l4dx9j9sscpvs7no2"
+            IndeedParams: "gd_l4dx9j9sscpvs7no2",
         }.get(type(params))
 
         URL = f"{BASE_URL}/trigger/?dataset_id={id_trigger}&type=discover_new&discover_by=keyword"
-        
+
         payload = [params.to_dict()]
 
         try:
-            response = requests.post(URL, headers=self.headers, json=payload, timeout=30)
+            response = requests.post(
+                URL, headers=self.headers, json=payload, timeout=30
+            )
             response.raise_for_status()
 
             data = response.json()
-            self.snapshot_id = data.get('snapshot_id')
+            self.snapshot_id = data.get("snapshot_id")
 
             if not self.snapshot_id:
                 return {
                     "status": "error",
-                    "message": "snapshot ID not received in the response"
+                    "message": "snapshot ID not received in the response",
                 }
 
             return {
                 "status": "success",
                 "message": "snapshot request successful",
-                "snapshot_id": self.snapshot_id
+                "snapshot_id": self.snapshot_id,
             }
 
         except requests.exceptions.RequestException as e:
             return {
                 "status": "error",
-                "message": f"Failed to connect to the API: {str(e)}"
+                "message": f"Failed to connect to the API: {str(e)}",
             }
         except ValueError as e:
-            return {
-                "status": "error",
-                "message": f"Error processing request: {str(e)}"
-            }
+            return {"status": "error", "message": f"Error processing request: {str(e)}"}
         except Exception as e:
             return {
                 "status": "error",
-                "message": f"An unexpected error occurred: {str(e)}"
+                "message": f"An unexpected error occurred: {str(e)}",
             }
-        
-    #Resquest if the snapshot is ready
+
+    # Request if the snapshot is ready
     def check_snapshot_status(self):
         """
         Check the status of a snapshot.
@@ -137,7 +135,7 @@ class BrightDataClient:
 
         Returns:
             dict: A dictionary containing status information. Possible keys are:
-                - 'status': A string indicating the snapshot status 
+                - 'status': A string indicating the snapshot status
                   ('ready', 'running', 'failed', 'unknown', or 'error').
                 - 'message': A string providing additional information about the status.
 
@@ -152,44 +150,52 @@ class BrightDataClient:
             {'status': 'ready', 'message': 'snapshot is ready for retrieval'}
         """
         URL = f"{BASE_URL}/progress/{self.snapshot_id}"
-        
+
         try:
             response = requests.get(URL, headers=self.headers, timeout=30)
             response.raise_for_status()
 
             data = response.json()
-            status = data.get('status')
+            status = data.get("status")
 
-            if status == 'ready':
-                return {'status': 'ready', 'message': 'Snapshot is ready for retrieval'}
-            elif status == 'running':
-                return {'status': 'running', 'message': 'Snapshot is still being processed'}
-            elif status == 'failed':
-                error_message = data.get('error_message', 'No specific error message provided')
-                return {'status': 'failed', 'message': f'Snapshot processing failed: {error_message}'}
+            if status == "ready":
+                return {"status": "ready", "message": "Snapshot is ready for retrieval"}
+            elif status == "running":
+                return {
+                    "status": "running",
+                    "message": "Snapshot is still being processed",
+                }
+            elif status == "failed":
+                error_message = data.get(
+                    "error_message", "No specific error message provided"
+                )
+                return {
+                    "status": "failed",
+                    "message": f"Snapshot processing failed: {error_message}",
+                }
             else:
-                return {'status': 'unknown', 'message': f'Unknown status: {status}'}
+                return {"status": "unknown", "message": f"Unknown status: {status}"}
 
         except requests.exceptions.RequestException as e:
             # Handle network-related errors
             return {
                 "status": "error",
-                "message": f"Failed to connect to the API: {str(e)}"
+                "message": f"Failed to connect to the API: {str(e)}",
             }
         except ValueError as e:
             # Handle JSON decoding errors
             return {
                 "status": "error",
-                "message": f"Error processing API response: {str(e)}"
+                "message": f"Error processing API response: {str(e)}",
             }
         except Exception as e:
             # Catch any other unexpected errors
             return {
                 "status": "error",
-                "message": f"An unexpected error occurred: {str(e)}"
+                "message": f"An unexpected error occurred: {str(e)}",
             }
 
-    #Request the snapshot
+    # Request the snapshot
     def retrieve_snapshot(self, snapshot_id=None):
         """
         Retrieve the snapshot from the Bright Data API.
@@ -198,7 +204,7 @@ class BrightDataClient:
         the snapshot identified by the given snapshot_id or the current snapshot_id.
 
         Args:
-            snapshot_id (str, optional): The ID of the snapshot to retrieve. 
+            snapshot_id (str, optional): The ID of the snapshot to retrieve.
                 If not provided, uses the current snapshot_id.
 
         Returns:
@@ -221,10 +227,7 @@ class BrightDataClient:
         snapshot_id = snapshot_id or self.snapshot_id
 
         if not snapshot_id:
-            return {
-                "status": "error",
-                "message": "No snapshot ID provided or set"
-            }
+            return {"status": "error", "message": "No snapshot ID provided or set"}
 
         URL = f"{BASE_URL}/snapshot/{snapshot_id}"
 
@@ -232,7 +235,9 @@ class BrightDataClient:
             "format": "json",
         }
         try:
-            response = requests.get(URL, headers=self.headers, params=params, timeout=60)
+            response = requests.get(
+                URL, headers=self.headers, params=params, timeout=60
+            )
             response.raise_for_status()
 
             snapshot = response.json()
@@ -242,33 +247,31 @@ class BrightDataClient:
                 save.process_snapshot(snapshot, snapshot_id)
 
             except Exception as e:
-                return {
-                    "status": "error",
-                    "message": f'An error occurred: {e}'
-                }
+                return {"status": "error", "message": f"An error occurred: {e}"}
             return {
                 "status": "success",
                 "message": "Snapshot retrieved successfully",
-                "data": snapshot
+                "data": snapshot,
             }
         except requests.exceptions.RequestException as e:
             # Handle network-related errors
             return {
                 "status": "error",
-                "message": f"Failed to connect to the API: {str(e)}"
+                "message": f"Failed to connect to the API: {str(e)}",
             }
         except ValueError as e:
             # Handle JSON decoding errors
             return {
                 "status": "error",
-                "message": f"Error processing API response: {str(e)}"
+                "message": f"Error processing API response: {str(e)}",
             }
         except Exception as e:
             # Catch any other unexpected errors
             return {
                 "status": "error",
-                "message": f"An unexpected error occurred: {str(e)}"
+                "message": f"An unexpected error occurred: {str(e)}",
             }
+
     # Request a list of snapshots requested for a specific dataset
     def retrieve_snapshots_list(self, dataset_id):
         """
@@ -305,7 +308,9 @@ class BrightDataClient:
         }
 
         try:
-            response = requests.get(URL, headers=self.headers, params=params, timeout=60)
+            response = requests.get(
+                URL, headers=self.headers, params=params, timeout=60
+            )
             response.raise_for_status()
 
             snapshots_list = response.json()
@@ -313,24 +318,24 @@ class BrightDataClient:
             return {
                 "status": "success",
                 "message": "Snapshots list retrieved successfully",
-                "data": snapshots_list
+                "data": snapshots_list,
             }
         except requests.exceptions.RequestException as e:
             return {
                 "status": "error",
-                "message": f"Failed to connect to the API: {str(e)}"
+                "message": f"Failed to connect to the API: {str(e)}",
             }
         except ValueError as e:
             return {
                 "status": "error",
-                "message": f"Error processing API response: {str(e)}"
+                "message": f"Error processing API response: {str(e)}",
             }
         except Exception as e:
             return {
                 "status": "error",
-                "message": f"An unexpected error occurred: {str(e)}"
+                "message": f"An unexpected error occurred: {str(e)}",
             }
 
+
 if __name__ == "__main__":
-    
     client = BrightDataClient()

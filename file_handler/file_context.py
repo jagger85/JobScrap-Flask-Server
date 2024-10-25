@@ -2,6 +2,7 @@ from contextlib import contextmanager
 import os
 from typing import TextIO, Generator
 
+
 class FileContext:
     """
     Provides a safe context for file operations.
@@ -24,14 +25,16 @@ class FileContext:
     """
 
     @contextmanager
-    def safe_open(self, filepath: str, mode: str = 'r') -> Generator[TextIO, None, None]:
+    def safe_open(
+        self, filepath: str, mode: str = "r"
+    ) -> Generator[TextIO, None, None]:
         """
         Safely open and handle files using context manager.
-        
+
         Args:
             filepath (str): Path to the file to be opened
             mode (str): File opening mode ('r', 'w', 'a', etc.)
-            
+
         Yields:
             TextIO: File object that can be used in a with statement
         """
