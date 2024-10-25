@@ -4,6 +4,8 @@ from datetime import datetime
 from typing import Dict, Any
 from .file_context import FileContext
 from logger import file_logger as log
+
+
 class FileFactory:
     """
     Handles creation and management of snapshot files and snapshot ID records.
@@ -40,7 +42,7 @@ class FileFactory:
         self.snapshots_dir = os.path.join(base_output_dir, "snapshots")
         self.snapshot_ids_dir = os.path.join(base_output_dir, "snapshots-id")
         self.file_context = FileContext()
-        
+
         # Ensure directories exist
         for directory in [self.snapshots_dir, self.snapshot_ids_dir]:
             os.makedirs(directory, exist_ok=True)
@@ -49,10 +51,10 @@ class FileFactory:
         """Save snapshot to a JSON file with a given name and unique ID."""
         filename = f"{name}.json"
         filepath = os.path.join(self.snapshots_dir, filename)
-        
-        with self.file_context.safe_open(filepath, 'w') as f:
+
+        with self.file_context.safe_open(filepath, "w") as f:
             json.dump(data, f, indent=4)
-        
+
         log.info(f"Snapshot saved successfully: {filename} at {filepath}")
         return filepath
 
@@ -60,20 +62,20 @@ class FileFactory:
         """Save snapshot ID with timestamp."""
         filename = f"snapshots.json"
         filepath = os.path.join(self.snapshot_ids_dir, filename)
-        
+
         existing_data = []
         if os.path.exists(filepath):
-            with self.file_context.safe_open(filepath, 'r') as f:
+            with self.file_context.safe_open(filepath, "r") as f:
                 existing_data = json.load(f)
-        
+
         new_entry = {
             "snapshot_id": snapshot_id,
             "timestamp": datetime.now().isoformat(),
         }
         existing_data.append(new_entry)
-        
-        with self.file_context.safe_open(filepath, 'w') as f:
+
+        with self.file_context.safe_open(filepath, "w") as f:
             json.dump(existing_data, f, indent=4)
-        
+
         log.info(f"Snapshot ID saved successfully: {filename} at {filepath}")
         return filepath

@@ -2,6 +2,7 @@ from typing import Dict, Any
 from .file_factory import FileFactory
 from logger import file_logger as log
 
+
 class FileManager:
     """
     Manages file operations for snapshots and snapshot IDs.
@@ -35,7 +36,9 @@ class FileManager:
     def __init__(self):
         self.file_factory = FileFactory()
 
-    def process_and_save_snapshot(self, snapshot: Dict[str, Any], snapshot_id: str) -> str:
+    def process_and_save_snapshot(
+        self, snapshot: Dict[str, Any], snapshot_id: str
+    ) -> str:
         """
         Process and save a snapshot in a single operation.
 
@@ -54,10 +57,10 @@ class FileManager:
     def process_snapshot_id(self, snapshot_id: str) -> str:
         """
         Process and save the snapshot ID.
-        
+
         Args:
             snapshot_id (str): The snapshot ID to track
-            
+
         Returns:
             str: Path to the saved snapshot ID file
         """
@@ -71,11 +74,11 @@ class FileManager:
     def process_snapshot(self, snapshot: Dict[str, Any], snapshot_id: str) -> str:
         """
         Process and save the snapshot.
-        
+
         Args:
             snapshot (Dict[str, Any]): The snapshot to save
             snapshot_id (str): The ID of the snapshot
-            
+
         Returns:
             str: Path to the saved snapshot file
         """
