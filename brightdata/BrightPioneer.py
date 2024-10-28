@@ -20,7 +20,7 @@ states = [
 # Error_occurred: Moves the machine to error from any state ('*' represents any state)
 
 transitions = [
-    {"trigger": "init", "source": "*", "dest": "requesting_data"},
+    {"trigger": "launch", "source": "*", "dest": "requesting_data"},
     {"trigger": "request_data", "source": "idle", "dest": "requesting_data"},
     {"trigger": "wait_data", "source": "requesting_data", "dest": "waiting_data"},
     {"trigger": "process_data", "source": "waiting_data", "dest": "processing_data"},
@@ -34,7 +34,7 @@ class BrightPioneer:
         global log
         global client
 
-        client = BrightDataClient()
+        client = BrightDataClient(logger)
         log = logger
 
         self.waiting_time = 60
@@ -45,7 +45,6 @@ class BrightPioneer:
         self.machine = Machine(
             model=self, states=states, transitions=transitions, initial="idle"
         )
-        self.init()
 
     # STATE HANDLERS
     # These methods are automatically called when the machine enters specific states.
@@ -86,7 +85,7 @@ class BrightPioneer:
                 self.process_data()
                 return
 
-            elif status["status"] == "error":
+            elif status["status"] == "failed":
                 self.error_occurred(status["message"])
                 return
 
@@ -119,9 +118,11 @@ class BrightPioneer:
 
     def on_enter_sending_result(self):
         log.info("🎉🎉🎉🎉 we reached the final stage!")
+        self.state_result =  "✅ Exploration mission accomplished"
 
     def on_enter_error(self, msg):
         log.error(msg)
+        self.state_result = "🥲 Something bad happened"
 
 
 if __name__ == "__main__":

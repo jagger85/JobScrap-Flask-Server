@@ -31,7 +31,9 @@ class BrightDataClient:
         ...     data = client.retrieve_snapshot()
     """
 
-    def __init__(self):
+    def __init__(self, logger):
+        global log
+        log = logger
         global save
         save = FileManager()
 
@@ -89,7 +91,12 @@ class BrightDataClient:
 
         URL = f"{BASE_URL}/trigger/?dataset_id={id_trigger}&type=discover_new&discover_by=keyword"
 
+        log.debug(f'Requested dataset {URL}')
+
         payload = [params.to_dict()]
+        
+        log.debug(f'Query params: {payload}')
+
 
         try:
             response = requests.post(
@@ -150,6 +157,8 @@ class BrightDataClient:
             {'status': 'ready', 'message': 'snapshot is ready for retrieval'}
         """
         URL = f"{BASE_URL}/progress/{self.snapshot_id}"
+        log.debug(f'Snapshot id: {self.snapshot_id}')
+        log.debug(f'Snapshot requested url: {URL}')
 
         try:
             response = requests.get(URL, headers=self.headers, timeout=30)
@@ -166,9 +175,7 @@ class BrightDataClient:
                     "message": "Snapshot is still being processed",
                 }
             elif status == "failed":
-                error_message = data.get(
-                    "error_message", "No specific error message provided"
-                )
+                error_message = data.get("error_message")
                 return {
                     "status": "failed",
                     "message": f"Snapshot processing failed: {error_message}",
@@ -302,7 +309,7 @@ class BrightDataClient:
         URL = f"{BASE_URL}/snapshots"
         params = {
             "dataset_id": dataset_id
-            # @todo
+            # TODO
             # "from_date" - List only snapshots that were created after a specific date, Example: from_date=2024-01-01
             # "to_date" - List only snapshots that were created before a specific date, Example: from_date=2024-04-01
         }
