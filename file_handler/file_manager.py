@@ -1,6 +1,6 @@
 from typing import Dict, Any
 from .file_factory import FileFactory
-from logger import file_logger as log
+from logger import get_logger
 
 
 class FileManager:
@@ -34,6 +34,8 @@ class FileManager:
     """
 
     def __init__(self):
+        global log
+        log = get_logger("File handler")
         self.file_factory = FileFactory()
 
     def process_and_save_snapshot(

@@ -1,8 +1,7 @@
 from brightdata.BrightPioneer import BrightPioneer
 from models.LinkedInParams import LinkedInParams, TimeRange
 from models.IndeedParams import IndeedParams
-from logger import indeed_logger
-from logger import linkedin_logger
+from logger import get_logger
 
 if __name__ == "__main__":
     linkedin_params = LinkedInParams(
@@ -11,4 +10,4 @@ if __name__ == "__main__":
 
     indeed_params = IndeedParams(location="Manila", keywords="React")
 
-    pioneer = BrightPioneer(linkedin_logger, linkedin_params)
+    pioneer = BrightPioneer(get_logger("LinkedIn"), linkedin_params)

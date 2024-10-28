@@ -3,7 +3,7 @@ import os
 from datetime import datetime
 from typing import Dict, Any
 from .file_context import FileContext
-from logger import file_logger as log
+from logger import get_logger
 
 
 class FileFactory:
@@ -38,10 +38,13 @@ class FileFactory:
     """
 
     def __init__(self, base_output_dir: str = "output"):
+        global log
+        log = get_logger("File handler")
         self.base_output_dir = base_output_dir
         self.snapshots_dir = os.path.join(base_output_dir, "snapshots")
         self.snapshot_ids_dir = os.path.join(base_output_dir, "snapshots-id")
         self.file_context = FileContext()
+        
 
         # Ensure directories exist
         for directory in [self.snapshots_dir, self.snapshot_ids_dir]:
