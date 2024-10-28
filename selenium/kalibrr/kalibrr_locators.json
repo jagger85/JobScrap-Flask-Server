@@ -1,0 +1,78 @@
+{
+	"ViewPostLink": {
+		"type": "xpath",
+		"locator": "(//a[contains(text(),'View Post')])[15]"
+	},
+	"JobPosition": {
+		"type": "xpath",
+		"locator": "(//div[@id='__next']/div/main/div[2]/div/div/div/div[2]/div[2]/span[2])[1]"
+	},
+	"JobCards": {
+		"type": "xpath",
+		"locator": "//div[@id='__next']/div/main/div[2]/div/div/div/div"
+	},
+	"JobTitle": {
+		"type": "xpath",
+		"locator": ".//h2/a"
+	},
+	"CompanyName": {
+		"type": "xpath",
+		"locator": ".//span[@class='k-inline-flex k-items-center k-mb-1']/a"
+	},
+	"Location": {
+		"type": "xpath",
+		"locator": ".//span[contains(@class, 'k-text-gray-500')][1]"
+	},
+	"Salary": {
+		"type": "xpath",
+		"locator": ".//span[contains(@class, 'k-flex') and contains(@class, 'k-gap-4') and contains(@class, 'k-text-gray-300')]/span[contains(@class, 'k-text-subdued')]/span | .//span[contains(@class, 'k-flex') and contains(@class, 'k-gap-4') and contains(@class, 'k-text-gray-300')]/p[contains(@class, 'k-text-gray-500')]"
+	},
+	"WorkType": {
+		"type": "xpath",
+		"locator": ".//span[@itemprop='employmentType']/preceding-sibling::span[1]"
+	},
+	"WorkArrangement": {
+		"type": "xpath",
+		"locator": ".//div[contains(@class, 'k-remote-work-tag') or contains(@class, 'k-hybrid-work-tag')]/span"
+	},
+	"ListingDate": {
+		"type": "xpath",
+		"locator": ".//span[contains(@class, 'k-text-gray-500')][3]"
+	},
+	"JobLink": {
+		"type": "xpath",
+		"locator": ".//a[contains(text(), 'View Post')]"
+	},
+	"JobListingCard": {
+		"type": "xpath",
+		"locator": "//div[contains(@class, 'k-font-dm-sans') and contains(@class, 'k-rounded-lg')]"
+	},
+	"JobListingCardCSS": {
+		"type": "css",
+		"locator": "div.k-font-dm-sans.k-rounded-lg"
+	},
+	"LoadMoreJobs": {
+		"type": "xpath",
+		"locator": "(//div[@id='__next']/div/main/div[2]/div[3]/button)[1]"
+	},
+	"ViewPostButton": {
+		"type": "xpath",
+		"locator": "//a[contains(@class, 'k-btn-primary') and contains(text(), 'View Post')]"
+	},
+	"JobDescription": {
+		"type": "xpath",
+		"locator": "//div[@itemprop='description']"
+	},
+	"PostedAYearAgoAndDeadline": {
+		"type": "xpath",
+		"locator": "(//div[@id='__next']/div/main/div/div/div/div/div[2]/p)[1]"
+	},
+	"DatePosted": {
+		"type": "xpath",
+		"locator": ".//span[@itemprop='datePosted']"
+	},
+	"ValidThrough": {
+		"type": "xpath",
+		"locator": ".//span[@itemprop='validThrough']"
+	}
+}
