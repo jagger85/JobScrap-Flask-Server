@@ -84,13 +84,11 @@ class BrightDataClient:
             {'status': 'success', 'message': 'snapshot request successful', 'snapshot_id': 'abc123'}
         """
 
-        id_trigger = {
-            LinkedInParams: "gd_lpfll7v5hcqtkxl6l",
-            IndeedParams: "gd_l4dx9j9sscpvs7no2",
-        }.get(type(params))
+       
+     
 
-        URL = f"{BASE_URL}/trigger/?dataset_id={id_trigger}&type=discover_new&discover_by=keyword"
-
+        URL = f"{BASE_URL}/trigger/?dataset_id={params.get_dataset_id()}&type=discover_new&discover_by=keyword"
+        log.debug(f'Requested dataset id: {params.get_dataset_id()}')
         log.debug(f'Requested dataset {URL}')
 
         payload = [params.to_dict()]

@@ -8,3 +8,4 @@ drop_bin
 output_samples/
 output/
 .cursorrules
+brightdata/outputs
