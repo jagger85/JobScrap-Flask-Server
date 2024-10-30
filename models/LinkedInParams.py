@@ -1,7 +1,10 @@
 from dataclasses import dataclass, field
 from typing import Optional, Dict
 from enum import Enum
+from logger import get_logger
 
+dataset_id = "gd_lpfll7v5hcqtkxl6l"
+platform_name = "LinkedIn"
 
 class TimeRange(Enum):
     PAST_24_HOURS = "Past 24 hours"
@@ -34,32 +37,52 @@ class Remote(Enum):
 
 @dataclass(frozen=True)
 class LinkedInParams:
-    location: str
-    keywords: str
-    time_range: Optional[TimeRange] = ""
-    job_type: Optional[JobType] = ""
-    experience_level: Optional[ExperienceLevel] = ""
-    remote: Optional[Remote] = ""
-    company: Optional[str] = ""
+    """
+    A class to represent LinkedIn job search parameters.
+
+    Attributes:
+        location ([str]): The location to search for jobs.
+        keywords ([str]): The keywords to use in the job search.
+        time_range (Optional[TimeRange]): The time range for job postings.
+        job_type (Optional[JobType]): The type of job (e.g., full-time, part-time).
+        experience_level (Optional[ExperienceLevel]): The required experience level.
+        remote (Optional[Remote]): The work arrangement (e.g., on-site, remote).
+        company (Optional[str]): The company name to filter job postings.
+        country (str): The country code for the job search (default is "PH").
+    """
+    
+    location: Optional[str] = ""
+    keywords: Optional[str] = ""
+    time_range: Optional[TimeRange] = None
+    job_type: Optional[JobType] = None
+    experience_level: Optional[ExperienceLevel] = None
+    remote: Optional[Remote] = None
+    company: Optional[str] = None
     country: str = field(default="PH", init=False)
 
     def __post_init__(self):
+        log = get_logger("LinkedIn params")
+        
+        if not isinstance(self.location, str) or not self.location.strip():
+            log.warning("Location is empty")
+
+        if not isinstance(self.keywords, str) or not self.keywords.strip():
+            log.warning("Keywords are empty")
+
         if self.time_range and not isinstance(self.time_range, TimeRange):
-            raise ValueError(
+            log.warning(
                 f"time_range must be an instance of TimeRange Enum, got {type(self.time_range)}"
             )
         if self.job_type and not isinstance(self.job_type, JobType):
-            raise ValueError(
+            log.warning(
                 f"job_type must be an instance of JobType Enum, got {type(self.job_type)}"
             )
-        if self.experience_level and not isinstance(
-            self.experience_level, ExperienceLevel
-        ):
-            raise ValueError(
+        if self.experience_level and not isinstance(self.experience_level, ExperienceLevel):
+            log.warning(
                 f"experience_level must be an instance of ExperienceLevel Enum, got {type(self.experience_level)}"
             )
         if self.remote and not isinstance(self.remote, Remote):
-            raise ValueError(
+            log.warning(
                 f"remote must be an instance of Remote Enum, got {type(self.remote)}"
             )
 
@@ -76,6 +99,24 @@ class LinkedInParams:
             "remote": self.remote.value if self.remote else "",
             "company": self.company if self.company else "",
         }
+    
 
+
+    def get_dataset_id(self):
+        """
+
+        Returns:
+            str: The unique identifier for the BrightData dataset.
+        """
+        return dataset_id
+    
+    def get_platform_name(self):
+        """
+
+        Returns:
+            str: The platform name.
+        """
+        return platform_name
+    
     def __dict__(self):
         return self.to_dict()

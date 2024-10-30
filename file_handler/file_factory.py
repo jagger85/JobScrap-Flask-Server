@@ -25,6 +25,8 @@ class FileFactory:
             Saves a snapshot to a JSON file.
         save_snapshot_id(snapshot_id: str) -> str:
             Saves a snapshot ID with a timestamp to a JSON file.
+        save_snapshot_list(platform: str, data: Dict[str, Any]) -> str:
+            Saves the snapshot list to a JSON file named after the platform.
 
     Raises:
         None: This class handles exceptions internally through FileContext.
@@ -63,7 +65,7 @@ class FileFactory:
 
     def save_snapshot_id(self, snapshot_id: str) -> str:
         """Save snapshot ID with timestamp."""
-        filename = f"snapshots.json"
+        filename = "snapshots.json"
         filepath = os.path.join(self.snapshot_ids_dir, filename)
 
         existing_data = []
@@ -82,3 +84,18 @@ class FileFactory:
 
         log.info(f"Snapshot ID saved successfully: {filename} at {filepath}")
         return filepath
+
+    def save_snapshot_list(self, platform: str, data: Dict[str, Any]) -> str:
+        """Save the snapshot list to a JSON file named after the platform."""
+        filename = f"{platform}_list.json"
+        filepath = os.path.join(self.base_output_dir, "outputs", filename)
+
+        # Ensure the outputs directory exists
+        os.makedirs(os.path.dirname(filepath), exist_ok=True)
+
+        with self.file_context.safe_open(filepath, "w") as f:
+            json.dump(data, f, indent=4)
+
+        log.info(f"Snapshot list saved successfully: {filename} at {filepath}")
+        return filepath
+    
