@@ -1,5 +1,6 @@
 import logging
 from colorlog import ColoredFormatter
+from sse_handler import SSELoggingHandler
 import sys
 
 # Custom log level
@@ -39,6 +40,9 @@ colored_formatter = ColoredFormatter(
     },
     style="%",
 )
+
+# Initialize SSE handler
+sse_handler = SSELoggingHandler()
 
 # Custom StreamHandler for progress messages
 class ProgressStreamHandler(logging.StreamHandler):
@@ -115,4 +119,15 @@ def set_log_level(level):
     # Set level for all existing loggers
     for logger_name in logging.root.manager.loggerDict:
         logging.getLogger(logger_name).setLevel(level)
-    
+
+
+def get_sse_logger(name):
+    logger = logging.getLogger(name)
+    logger.setLevel(logging.DEBUG)
+    # Remove any existing handlers to prevent duplication
+    for handler in logger.handlers[:]:
+        logger.removeHandler(handler)
+    logger.addHandler(sse_handler)
+    # Prevent this logger from propagating messages to the root logger
+    logger.propagate = False
+    return logger
