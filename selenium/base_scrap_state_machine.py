@@ -2,8 +2,7 @@ from transitions import Machine
 from abc import ABC, abstractmethod
 from models.JobListing import JobListing
 from typing import List
-from csv_parser.csv_handler import write_csv_multiple
-
+from config import Config
 states = [
     "idle",
     "loading_listings",
@@ -63,6 +62,9 @@ class BaseScrapStateMachine(ABC):
             model=self, states=states, transitions=transitions, initial="idle"
         )
         log.info('🫡  Starting Mission')
+        self.data_handler = Config().storage
+        self.date_range = Config().date_range
+        self.driver = Config().chrome_driver
 
 
     # # Every trigger launch one of this methods, eg. self.launch() triggers on_enter_loading() and so on
@@ -86,7 +88,7 @@ class BaseScrapStateMachine(ABC):
     def on_enter_sending_listings(self, listings: List[JobListing]):
         try:
             log.info("🛰️  Sending result")
-            write_csv_multiple(listings)
+            self.data_handler.store_snapshot(listings)
 
         except Exception as e:
             log.error(f"Error in sending_listings: {str(e)}")

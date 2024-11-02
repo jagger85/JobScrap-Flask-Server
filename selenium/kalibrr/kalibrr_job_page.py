@@ -1,7 +1,7 @@
 import json
 from selenium.webdriver.common.by import By
-from file_handler.file_context import FileContext
-from datetime import datetime
+from data_handler.file_context import FileContext
+from datetime import datetime, timedelta
 
 class KalibrrJobPage():
     def __init__(self,driver):
@@ -56,15 +56,27 @@ class KalibrrJobPage():
             >>> listing_date = job_page.get_job_listing_date()
             >>> print(listing_date)  # Output: 10-18-24
         """
-        date_posted_element = self.driver.find_element(By.XPATH, self.locators["DatePosted"]["locator"])
-        iso_date = date_posted_element.get_attribute("innerHTML")
-        
-        # Convert ISO date to datetime and format as MM-DD-YY
-        date_obj = datetime.fromisoformat(iso_date.split('+')[0])
-        formatted_date = date_obj.strftime('%m-%d-%y')
-        
-        return formatted_date
-
+        try:
+            date_posted_element = self.driver.find_element(By.XPATH, self.locators["DatePosted"]["locator"])
+            iso_date = date_posted_element.get_attribute("innerHTML")
+            
+            # Clean the date string
+            cleaned_date = iso_date.strip().split('+')[0]
+            
+            # Parse the date
+            date_obj = datetime.fromisoformat(cleaned_date)
+            
+            # Always use current year for initial formatting
+            current_date = datetime.now()
+            date_obj = date_obj.replace(year=current_date.year)
+            
+            # Format the date
+            formatted_date = date_obj.strftime('%m-%d-%y')
+            
+            return formatted_date
+            
+        except Exception as e:
+            raise Exception(f"Failed to get listing date: {str(e)}")
     def get_valid_through(self):
         """
         Retrieve the valid through date from the job page.
@@ -82,3 +94,35 @@ class KalibrrJobPage():
         """
         valid_through_element = self.driver.find_element(By.XPATH, self.locators["ValidThrough"]["locator"])
         return valid_through_element.get_attribute("innerHTML")
+
+    def is_within_past_15_days(self, listing_date_str):
+        """
+        Check if the given listing date is within the past 15 days from today.
+
+        Args:
+            listing_date_str (str): The listing date in MM-DD-YY format.
+
+        Returns:
+            bool: True if the listing date is within the past 15 days, False otherwise.
+        """
+        # Parse the listing date
+        listing_date = datetime.strptime(listing_date_str, '%m-%d-%y')
+        
+        # Get the current date
+        current_date = datetime.now()
+        
+        # Calculate the cutoff date (15 days ago)
+        cutoff_date = current_date - timedelta(days=15)
+        
+        # Compare the listing date with the cutoff date
+        is_within_range = cutoff_date <= listing_date <= current_date
+        
+        # Debugging output
+        print(f"Date comparison:\n"
+              f"- Original listing date: {listing_date_str}\n"
+              f"- Adjusted listing date: {listing_date}\n"
+              f"- Current date: {current_date}\n"
+              f"- Cutoff date: {cutoff_date}\n"
+              f"- Within range: {is_within_range}")
+        
+        return is_within_range

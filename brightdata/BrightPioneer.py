@@ -1,6 +1,7 @@
 from transitions import Machine
 from brightdata.brightdata_api import BrightDataClient
 from models import LinkedInParams, IndeedParams
+from models import JobListing
 import time
 from typing import Union
 
@@ -30,7 +31,7 @@ transitions = [
 
 
 class BrightPioneer:
-    def __init__(self, logger, params: Union[LinkedInParams, IndeedParams]):  # type: ignore
+    def __init__(self, logger, params: Union[LinkedInParams, IndeedParams], data_manager):
         global log
         global client
 
@@ -41,6 +42,8 @@ class BrightPioneer:
         self.waiting_retries = 6
         self.waited_times = 0
         self.params = params
+        self.data_manager = data_manager
+        self.listings = []
 
         self.machine = Machine(
             model=self, states=states, transitions=transitions, initial="idle"
@@ -104,10 +107,14 @@ class BrightPioneer:
             if result["status"] == "success":
                 log.info("Dataset retrieved successfully")
 
-                # log the number of items retrieved
-                data = result.get("data", [])
-                log.info(f"Retrieved {len(data)} items from the dataset")
-                self.send_result()
+                snapshot = result.get("snapshot", [])
+                log.info(f"Retrieved {len(snapshot)} items from the dataset")
+                if isinstance(self.params, IndeedParams):
+                    processed_listings = self.process_indeed_snapshot(snapshot)
+                    # Implement a send result
+                elif isinstance(self.params, LinkedInParams):
+                    processed_listings = self.process_linkedIn_snapshot(snapshot)
+                    # Implement send result
             else:
                 error_message = result.get("message", "Unknown error occurred")
                 log.error(f"Failed to retrieve dataset: {error_message}")
@@ -116,13 +123,66 @@ class BrightPioneer:
             log.exception("Exception occurred while processing data")
             self.error_occurred(f"Exception during data processing: {str(e)}")
 
-    def on_enter_sending_result(self):
+    def on_enter_sending_result(self, processed_data):
+        #TODO implement sending to datamanager
         log.info("🎉🎉🎉🎉 we reached the final stage!")
+
         self.state_result =  "✅ Exploration mission accomplished"
 
     def on_enter_error(self, msg):
         log.error(msg)
         self.state_result = "🥲 Something bad happened"
+
+
+
+    def process_linkedIn_snapshot(self, snapshot):
+        log.info("Processing LinkedIn listings")
+
+        processed_listings = []
+
+        for listing in snapshot:
+            processed_listing = JobListing(
+                site=self.params.get_platform_name(),
+                listing_date=listing.get('job_posted_date'),
+                job_title=listing.get('job_title'),
+                company=listing.get('company_name'),
+                location=listing.get('job_location'),
+                employment_type=listing.get('job_employment_type'),
+                position=listing.get('job_seniority_level'),
+                salary=listing.get('job_base_pay_range'),
+                description=listing.get('job_summary'),
+                url=listing.get('url')
+            )
+            processed_listings.append(processed_listing)
+
+        log.info(f"Processed {len(processed_listings)} LinkedIn listings")
+        self.send_result(processed_listings)
+        return processed_listings
+
+    def process_indeed_snapshot(self, snapshot):
+        log.info("Processing Indeed listings")
+
+        processed_listings = []
+
+        for listing in snapshot:
+            processed_listing = JobListing(
+                site=self.params.get_platform_name(),
+                listing_date=listing.get('date_posted_parsed'),
+                job_title=listing.get('job_title'),
+                company=listing.get('company_name'),
+                location=listing.get('location'),
+                employment_type=listing.get('job_type'),
+                position=None,  # Indeed doesn't provide seniority level
+                salary=listing.get('salary_formatted'),
+                description=listing.get('description_text'),
+                url=listing.get('url')
+            )
+            processed_listings.append(processed_listing)
+
+        log.info(f"Processed {len(processed_listings)} Indeed listings")
+        self.send_result(processed_listings)
+        return processed_listings
+
 
 
 if __name__ == "__main__":

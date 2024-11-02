@@ -1,11 +1,25 @@
 import json
 from selenium.webdriver.common.by import By
-from file_handler.file_context import FileContext
+from data_handler.file_context import FileContext
 from selenium.common.exceptions import NoSuchElementException
 
-
 class KalibrrHomePage:
+    """
+    Represents the Kalibrr home page and provides methods to interact with job listings.
+
+    Attributes:
+        driver: The Selenium WebDriver instance used to interact with the web page.
+        locators: A dictionary containing locators for various elements on the page.
+    """
+
     def __init__(self, driver, logger):
+        """
+        Initializes the KalibrrHomePage with a WebDriver and a logger.
+
+        Args:
+            driver: The Selenium WebDriver instance.
+            logger: The logger instance for logging information.
+        """
         global log
         log = logger
         self.driver = driver
@@ -13,13 +27,21 @@ class KalibrrHomePage:
         with file.safe_open("selenium/kalibrr/kalibrr_locators.json", "r") as json_file:
             self.locators = json.load(json_file)
 
-
     def load_more_jobs_button(self):
+        """
+        Retrieves the locator for the 'Load More Jobs' button.
+
+        Returns:
+            str: The locator for the 'Load More Jobs' button.
+        """
         return self.locators["LoadMoreJobs"]["locator"]
 
     def get_job_listing_cards(self):
         """
-        Function to locate job listing cards and return them as an array of JSON objects.
+        Locates job listing cards and returns them as an array of JSON objects.
+
+        Returns:
+            list: A list of dictionaries, each representing a job listing with details such as title, company, location, salary, position, job type, job arrangement, and URL.
         """
         locator = self.locators["JobListingCard"]["locator"]
         elements = self.driver.find_elements(By.XPATH, locator)
@@ -58,19 +80,7 @@ class KalibrrHomePage:
             }
             job_listings.append(job_listing)
 
-        
         log.progress_complete('🛰️  All job listings collected')
         return job_listings
 
-    def get_job_listing_card_css(self):
-        """
-        Function to locate job listing cards using the JobListingCardCSS locator.
-        """
-        locator = self.locators["JobListingCardCSS"]["locator"]
-        elements = self.driver.find_elements(By.CSS_SELECTOR, locator)
-        for element in elements:
-            print(element.text)
-
-            # job_listing_date = element.find_element(By.XPATH, self.locators['ListingDate']['locator'])
-            # job_description = element.find_element(By.XPATH, self.locators['']['locator'])
 

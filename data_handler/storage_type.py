@@ -1,5 +1,6 @@
 from enum import Enum
 
+
 class StorageType(Enum):
     """
     Enum defining supported storage types for the application.
@@ -11,6 +12,7 @@ class StorageType(Enum):
         DATABASE: For database storage
         CSV: For csv-based storage (CSV files)
     """
-    FILE = "file"
+
+    JSON = "file"
     DATABASE = "database"
     CSV = "csv"

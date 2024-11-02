@@ -5,10 +5,11 @@ from selenium.webdriver.support import expected_conditions as EC
 from selenium.common.exceptions import NoSuchElementException
 
 class JobstreetNavigator:
-    def __init__(self, logger, driver):
+    def __init__(self, logger, driver,):
         global log
         log = logger
         self.driver = driver
+        self.page = driver.current_url
         self.home_page = JobstreetHomePage(driver=self.driver, logger=log)
         self.job_listings = []
 
@@ -40,10 +41,28 @@ class JobstreetNavigator:
                         log.error(f"Failed to collect details for listing {listing_id}")
                     
                 
-                # Try to go to next page
-                if not self.home_page.go_to_next_page():
+                # Extract the base URL without the page parameter
+                base_url = self.page.split("page=")[0]
+                
+                # Extract the current page number from the URL or set to 1 if not present
+                current_page = int(self.page.split("page=")[-1]) if "page=" in self.page else 1
+                next_page = current_page + 1
+
+                # Construct the new URL with the incremented page number
+                if "page=" in self.page:
+                    new_url = base_url + f"page={next_page}"
+                else:
+                    new_url = self.page + f"&page={next_page}"
+
+                # Check if the new page exists by attempting to load it
+                self.driver.get(new_url)
+                if "No results found" in self.driver.page_source:  # Adjust this condition based on actual page content
                     log.debug("No more pages to process")
                     break
+
+                # Update self.page with the new URL
+                self.page = new_url
+                log.debug(f"Navigated to page {next_page}")
             
             log.progress_complete(f"Completed collection of {len(self.job_listings)} listings")
             return self.job_listings
