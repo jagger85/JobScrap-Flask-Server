@@ -3,7 +3,6 @@ import os
 from models.IndeedParams import IndeedParams
 from models.LinkedInParams import LinkedInParams
 from dotenv import load_dotenv
-from file_handler.file_manager import FileManager
 
 
 class BrightDataClient:
@@ -34,8 +33,6 @@ class BrightDataClient:
     def __init__(self, logger):
         global log
         log = logger
-        global save
-        save = FileManager()
 
         load_dotenv()
         API_KEY = os.getenv("BRIGHT")
@@ -84,17 +81,13 @@ class BrightDataClient:
             {'status': 'success', 'message': 'snapshot request successful', 'snapshot_id': 'abc123'}
         """
 
-       
-     
-
         URL = f"{BASE_URL}/trigger/?dataset_id={params.get_dataset_id()}&type=discover_new&discover_by=keyword"
-        log.debug(f'Requested dataset id: {params.get_dataset_id()}')
-        log.debug(f'Requested dataset {URL}')
+        log.debug(f"Requested dataset id: {params.get_dataset_id()}")
+        log.debug(f"Requested dataset {URL}")
 
         payload = [params.to_dict()]
-        
-        log.debug(f'Query params: {payload}')
 
+        log.debug(f"Query params: {payload}")
 
         try:
             response = requests.post(
@@ -155,8 +148,8 @@ class BrightDataClient:
             {'status': 'ready', 'message': 'snapshot is ready for retrieval'}
         """
         URL = f"{BASE_URL}/progress/{self.snapshot_id}"
-        log.debug(f'Snapshot id: {self.snapshot_id}')
-        log.debug(f'Snapshot requested url: {URL}')
+        log.debug(f"Snapshot id: {self.snapshot_id}")
+        log.debug(f"Snapshot requested url: {URL}")
 
         try:
             response = requests.get(URL, headers=self.headers, timeout=30)
@@ -247,16 +240,10 @@ class BrightDataClient:
 
             snapshot = response.json()
 
-            try:
-                save.process_snapshot_id(snapshot_id)
-                save.process_snapshot(snapshot, snapshot_id)
-
-            except Exception as e:
-                return {"status": "error", "message": f"An error occurred: {e}"}
             return {
                 "status": "success",
                 "message": "Snapshot retrieved successfully",
-                "data": snapshot,
+                "snapshot": snapshot
             }
         except requests.exceptions.RequestException as e:
             # Handle network-related errors

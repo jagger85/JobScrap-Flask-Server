@@ -3,7 +3,7 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.common.exceptions import TimeoutException, NoSuchElementException
-from file_handler.file_context import FileContext
+from data_handler.file_context import FileContext
 
 class JobstreetHomePage:
     def __init__(self, driver, logger):
@@ -58,12 +58,14 @@ class JobstreetHomePage:
 
     def go_to_next_page(self):
         """Navigate to next page if available"""
+        log.debug(f"Current URL before clicking next: {self.driver.current_url}")
         try:
             next_button = WebDriverWait(self.driver, 10).until(
                 EC.presence_of_element_located((By.XPATH, self.locators["pagination"]["nextButton"]["locator"]))
             )
             
             if next_button.is_enabled():
+                
                 log.debug("Navigating to next page...")
                 next_button.click()
                 # Wait for new page to load

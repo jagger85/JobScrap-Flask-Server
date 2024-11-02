@@ -1,63 +1,66 @@
-from selenium import webdriver
-from selenium.webdriver.chrome.options import Options
-from selenium.webdriver.chrome.service import Service
-"""
-    Core functionality for async web scraping initialization.
+from enum import Enum
+from config import Config
+from kalibrr.kalibrr_scrapper_machine import KalibrrScrapperMachine
+from jobstreet.jobstreet_scrapper_machine import JobstreetScrapperMachine
 
-    This class handles the setup and management of async web scraping operations
-    using Selenium WebDriver.
+"""
+    Core functionality for web scraping orchestration.
+
+    This class handles the initialization and management of web scraping operations
+    by dynamically creating the appropriate scraper machine based on the provided type.
 
     Args:
         logger: Logger instance for operation tracking
-        base_url (str): Target website's base URL
-        scrapper: State machine instance for scraping operations
+        scraper_type (ScraperType): Enum indicating which scraper implementation to use
+                                   (JOBSTREET or KALIBRR)
 
     Returns:
         None: Class initializes scraping environment and manages lifecycle
 
     Raises:
-        Exception: When page loading fails or driver setup encounters issues
+        ValueError: When an unsupported scraper type is provided
+        Exception: When scraper initialization fails
 
     Example:
-        >>> logger = Logger()
-        >>> mission = Mission(logger, "https://example.com", ScrapperMachine)
-        >>> voyager.start()
+        >>> logger = get_logger('Kalibrr')
+        >>> mission = SeleniumMission(logger, ScraperType.KALIBRR)
+        >>> mission.start()
 """
 
-class Mission():
-    def __init__(self,logger, url, scrapper):
-        global log
-        log = logger
+class ScraperType(Enum):
+    JOBSTREET = "jobstreet"
+    KALIBRR = "kalibrr"
+
+class SeleniumMission():
+    def __init__(self, logger, scraper_type: ScraperType):
+        self.logger = logger
+        self.config = Config()
         
-        self.scrapper = scrapper
-        self.url = url
-        self.setup_driver()
-
-    def setup_driver(self):
-        service = Service("selenium/chromedriver")
-        options = Options()
-        options.add_argument("--headless=new")
-        self.driver = webdriver.Chrome(service=service, options=options)
-
         try:
-            self.driver.get(self.url)
-            log.info(f'🎯  Target <-{self.url}-> loaded successfully')
+            # Initialize scraper based on type
+            if scraper_type == ScraperType.JOBSTREET:
+                self.scrapping_probe = JobstreetScrapperMachine(self.logger)
+            elif scraper_type == ScraperType.KALIBRR:
+                self.scrapping_probe = KalibrrScrapperMachine(self.logger)
+            else:
+                raise ValueError(f"Unsupported scraper type: {scraper_type}")
+                
+            self.logger.info(f'🎯 Initialized {scraper_type.value} scraper')
+            
         except Exception as e:
-            log.error(f"❌  Failed to load page / {self.url} / {str(e)}")
+            self.logger.error(f"❌ Failed to initialize scraper: {str(e)}")
             raise
-        
-        self.scrapping_probe = self.scrapper(log,self.driver)
 
     def start(self):
         try:
-            log.info('🚀  Launching')
+            self.logger.info('🚀  Launching')
             self.scrapping_probe.launch()
 
         finally:
             self.cleanup()
 
     def cleanup(self):
-        self.driver.quit
+        Config().chrome_driver.quit()
 
     def __aenter__(self):
         return self

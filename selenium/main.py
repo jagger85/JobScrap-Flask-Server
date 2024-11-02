@@ -1,39 +1,43 @@
 from logger import get_logger, set_log_level
-from selenium_mission import Mission
-from kalibrr.kalibrr_scrapper_machine import KalibrrScrapperMachine as voyager
-from jobstreet.jobstreet_scrapper_machine import JobstreetScrapperMachine as voyager2
+from selenium_mission import SeleniumMission, ScraperType
+from models.date_range import DateRange
+from config import Config
+from data_handler.storage_type import StorageType
 import logging
-from enum import Enum
 
-set_log_level(logging.INFO)
+# Initialize config
+config = Config()
+config.platforms = ["Jobstreet"]
 
-log = get_logger('Control station')
+# Initialize the Chrome driver
+config.init_chrome_driver(headless=True)
+config.date_range = DateRange.PAST_15_DAYS
+config.storage_type = StorageType.CSV
 
-# Define the enum class
-class ScraperType(Enum):
-    Jobstreet = 1
-    Kalibrr = 2
 
-# Define a mapping from ScraperType to URLs
-scraper_urls = {
-   # ScraperType.Jobstreet: [
-  #      'https://www.jobstreet.com.ph/react-jobs?sortmode=ListedDate'
- #   ],
-    ScraperType.Kalibrr: [
-        "https://www.kalibrr.com/home/te/tech-position/co/Philippines/i/it-and-software?sort=Freshness",
-        #"https://www.kalibrr.com/home/te/tech-position/co/Philippines/i/accounting-and-finance/i/administration-and-coordination/i/architecture-and-engineering/i/arts-and-sports/i/customer-service/i/education-and-training/i/general-services/i/health-and-medical/i/hospitality-and-tourism/i/human-resources/i/it-and-software/i/legal/i/management-and-consultancy/i/manufacturing-and-production/i/media-and-creatives/i/public-service-and-ngos/i/safety-and-security/i/sales-and-marketing/i/sciences/i/supply-chain/i/writing-and-content?sort=Freshness"
-    ]
-}
+set_log_level(logging.DEBUG)
+
+log = get_logger("Control station")
+
 
 def scrape_all_sites():
-    for scraper_type, urls in scraper_urls.items():
-        for url in urls:
-            log.info(f'📍 Expedition: {url} for {scraper_type.name}')
-            if scraper_type == ScraperType.Jobstreet:
-                Mission(get_logger('Jobstreet'), url, voyager2).start()
-            elif scraper_type == ScraperType.Kalibrr:
-                Mission(get_logger('Kalibrr'), url, voyager).start()
+    # Configure scrapers to run
+    scrapers = [(ScraperType.KALIBRR, "Kalibrr"), (ScraperType.JOBSTREET, "Jobstreet")]
+
+    for scraper_type, name in scrapers:
+        if name in config.platforms:  # Only run if platform is enabled in config
+            log.info(f"📍 Starting expedition for {name}")
+            mission = SeleniumMission(get_logger(name), scraper_type)
+            mission.start()
+
 
 if __name__ == "__main__":
-    log.info('🏢 Initiating digital expeditions - May the bandwidth be ever in our favor! 🌟')
-    scrape_all_sites()
+    log.info(
+        "🏢 Initiating digital expeditions - May the bandwidth be ever in our favor! 🌟"
+    )
+
+    try:
+        scrape_all_sites()
+    finally:
+        if config.chrome_driver:
+            config.chrome_driver.quit()

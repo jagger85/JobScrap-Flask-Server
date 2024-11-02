@@ -84,7 +84,7 @@
     "pagination": {
         "nextButton": {
             "type": "xpath",
-            "locator": "//nav[@aria-label='Pagination of results']//a[@rel='nofollow next']",
+            "locator": "//a[contains(@rel, 'nofollow next') and contains(@aria-label, 'Next') and not(contains(@aria-hidden, 'true'))]",
             "description": "Next page button in search results"
         }
     },

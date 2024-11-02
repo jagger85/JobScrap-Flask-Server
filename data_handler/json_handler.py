@@ -1,9 +1,11 @@
 import json
 import os
-from typing import Dict, Any, Union
+from typing import Union
 from .file_context import FileContext
 from logger import get_logger
 from data_handler.base_data_handler import BaseDataHandler
+from models.JobListing import JobListing
+from datetime import datetime
 
 
 class FileHandler(BaseDataHandler):
@@ -33,13 +35,17 @@ class FileHandler(BaseDataHandler):
         for directory in [self.snapshots_dir, self.snapshot_ids_dir]:
             os.makedirs(directory, exist_ok=True)
 
-    def store_snapshot(self, data: Dict[str, Any], name: str) -> str:
+    def store_snapshot(self,job_listings: list[JobListing]) -> str:
         """Save snapshot to a JSON file with a given name and unique ID."""
-        filename = f"{name}.json"
+        # Get the current date and time
+        current_time = datetime.now().strftime("%m-%d-%y_%Hh-%Mm")
+
+        # Create the file name with the date and time
+        filename = f"{job_listings[0].site}_jobs_{current_time}.json"
         filepath = os.path.join(self.snapshots_dir, filename)
 
         with self.file_context.safe_open(filepath, "w") as f:
-            json.dump(data, f, indent=4)
+            json.dump([job.__dict__ for job in job_listings], f, indent=4)
 
         log.info(f"Snapshot saved successfully: {filename} at {filepath}")
         return filepath

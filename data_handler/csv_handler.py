@@ -25,7 +25,7 @@ HEADERS = [
 
 class CsvHandler(BaseDataHandler):
     
-    def store_snapshot(job_listings: list[JobListing]):
+    def store_snapshot(self,job_listings: list[JobListing]):
         """
         Writes multiple JobListing objects to a CSV file.
 
