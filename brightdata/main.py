@@ -4,7 +4,7 @@ from models.LinkedInParams import LinkedInParams
 from data_handler.storage_factory import StorageFactory
 from data_handler.storage_type import StorageType
 import logging
-from logger import get_logger, set_log_level
+from logger.logger import get_logger, set_log_level
 
 if __name__ == "__main__":
     global log

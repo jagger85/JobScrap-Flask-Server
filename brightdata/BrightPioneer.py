@@ -186,6 +186,6 @@ class BrightPioneer:
 
 
 if __name__ == "__main__":
-    from logger import get_logger
+    from logger.logger import get_logger
 
     probe = BrightPioneer(get_logger("LinkedIn"))

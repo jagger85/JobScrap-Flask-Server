@@ -1,7 +1,7 @@
 from dataclasses import dataclass, field
 from typing import Optional, Dict
 from enum import Enum
-from logger import get_logger
+from logger.logger import get_logger
 
 dataset_id = "gd_lpfll7v5hcqtkxl6l"
 platform_name = "LinkedIn"

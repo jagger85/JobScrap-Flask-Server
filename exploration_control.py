@@ -1,9 +1,9 @@
 from brightdata.BrightPioneer import BrightPioneer
 from models.LinkedInParams import LinkedInParams, TimeRange
 from models.IndeedParams import IndeedParams
-from logger import indeed_logger
-from logger import linkedin_logger
-from logger import control_base as log
+from logger.logger import indeed_logger
+from logger.logger import linkedin_logger
+from logger.logger import control_base as log
 
 if __name__ == "__main__":
     linkedin_params = LinkedInParams(

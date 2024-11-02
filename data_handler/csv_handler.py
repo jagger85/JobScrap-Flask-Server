@@ -1,7 +1,7 @@
 import csv
 import os
 from models.JobListing import JobListing
-from logger import get_logger
+from logger.logger import get_logger
 from datetime import datetime
 from data_handler.base_data_handler import BaseDataHandler
 import json

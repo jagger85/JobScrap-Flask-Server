@@ -1,6 +1,6 @@
 from dataclasses import dataclass, field
 from typing import Optional, Dict
-from logger import get_logger
+from logger.logger import get_logger
 
 dataset_id = "gd_l4dx9j9sscpvs7no2"
 platform_name = "Indeed"

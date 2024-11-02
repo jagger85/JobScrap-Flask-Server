@@ -1,4 +1,4 @@
-from logger import get_logger, set_log_level
+from logger.logger import get_logger, set_log_level
 from selenium_mission import SeleniumMission, ScraperType
 from models.date_range import DateRange
 from config import Config

@@ -1,7 +1,7 @@
 from brightdata.BrightPioneer import BrightPioneer
 from models.LinkedInParams import LinkedInParams, TimeRange
 from models.IndeedParams import IndeedParams
-from logger import get_logger, set_log_level
+from logger.logger import get_logger, set_log_level
 import logging
 if __name__ == "__main__":
     set_log_level(logging.DEBUG)

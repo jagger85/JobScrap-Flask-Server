@@ -2,7 +2,7 @@ import json
 import os
 from typing import Union
 from .file_context import FileContext
-from logger import get_logger
+from logger.logger import get_logger
 from data_handler.base_data_handler import BaseDataHandler
 from models.JobListing import JobListing
 from datetime import datetime
