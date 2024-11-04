@@ -1,11 +1,16 @@
-from logger.logger import get_logger, set_log_level
+from logger.logger import get_logger, set_log_level, get_sse_logger
 from selenium_scrappers import SeleniumMission
-from models.platforms import Platforms
-from models.date_range import DateRange
-from selenium_scrappers.kalibrr.kalibrr_api_request import KalibrrAPIClient as kalibrr_client
+from constants.platforms import Platforms
+from constants.date_range import DateRange
+from selenium_scrappers.kalibrr.kalibrr_api_request import (
+    KalibrrAPIClient as kalibrr_client,
+)
 from config import Config
 from data_handler import StorageType
 import logging
+from server.state_manager import StateManager
+from server.sse_observer import SSEObserver
+from constants.platform_states import PlatformStates
 
 class Operation:
     def __init__(self, date_range: DateRange, platforms: list[Platforms]):
@@ -16,13 +21,29 @@ class Operation:
 
         set_log_level(logging.DEBUG)
         self.log = get_logger("ScraperOperation")
+        self.state_manager = StateManager()
+
+        # Initialize state management
+        self.state_manager = StateManager()
+        
+        # Setup SSE observer
+        sse_log = get_sse_logger('sse_logger')
+        sse_handler = sse_log.handlers[0]
+        self.sse_observer = SSEObserver(sse_handler)
+        self.state_manager.add_observer(self.sse_observer)
+        
+        # Initialize platforms
+        self.platforms = platforms
+        for platform in self.platforms:
+            self.state_manager.set_platform_state(platform, PlatformStates.WAITING)
+            self.sse_observer.notify_message(f"Initialized {platform.value}")
 
     def scrape_all_sites(self):
         # Platform-specific scraping handlers
         platform_handlers = {
             Platforms.JOBSTREET: self.handle_jobstreet,
             Platforms.KALIBRR: self.handle_kalibrr,
-            # Add more platforms here
+            # More platforms here
         }
 
         self.log.debug(f"Configured platforms: {self.config.platforms}")
@@ -30,14 +51,15 @@ class Operation:
         for scraper_type in platform_handlers:
             self.log.debug(f"Checking platform: {scraper_type.value}")
             if scraper_type.value in self.config.platforms:
-                self.log.info(f"📍 Starting expedition for {scraper_type.name}")
+                self.sse_observer.notify_message(f"Starting {scraper_type.name} expedition")
                 platform_handlers[scraper_type](scraper_type)
             else:
-                self.log.info(f"Skipping platform: {scraper_type.name} as it is not enabled in config")
+                self.log.info(
+                    f"Skipping platform: {scraper_type.name} as it is not enabled in config"
+                )
 
     def handle_jobstreet(self, platform):
         mission = SeleniumMission(get_logger(platform.name), platform)
-        # Add JobStreet specific configurations here
         mission.start()
 
     def handle_kalibrr(self, platform):
@@ -45,16 +67,17 @@ class Operation:
         client.retrieve_job_listings()
 
     def handle_indeed(self, platform):
-        self.log.warning('Operation Indeed not implemented yet')
+        self.log.warning("Operation Indeed not implemented yet")
 
     def handle_linkedIn(self, platform):
-        self.log.warning('Operation linkedIn not implemented yet')
+        self.log.warning("Operation linkedIn not implemented yet")
 
     def handle_google(self, platform):
-        self.log.warning('Operation google not implemented yet')
+        self.log.warning("Operation google not implemented yet")
+
 
 if __name__ == "__main__":
-    platforms = [Platforms.KALIBRR, Platforms.JOBSTREET]  # Example platforms
-    date_range = DateRange.PAST_MONTH  # Example date range
+    platforms = [Platforms.KALIBRR, Platforms.JOBSTREET]  
+    date_range = DateRange.PAST_MONTH
     scraper_operation = Operation(date_range, platforms)
     scraper_operation.scrape_all_sites()
