@@ -2,6 +2,9 @@ from config import Config
 from kalibrr.kalibrr_scrapper_machine import KalibrrScrapperMachine
 from jobstreet.jobstreet_scrapper_machine import JobstreetScrapperMachine
 from models.platforms import Platforms
+from selenium import webdriver
+from selenium.webdriver.chrome.service import Service
+from selenium.webdriver.chrome.options import Options
 
 """
     Core functionality for web scraping orchestration.
@@ -33,6 +36,14 @@ class SeleniumMission():
         self.config = Config()
         
         try:
+            # Initialize Chrome driver
+            self.logger.debug("🔧 Initializing Chrome driver")
+            service = Service("../chromedriver")
+            options = Options()
+            options.add_argument("--headless=new")
+            self.driver = webdriver.Chrome(service=service, options=options)
+            self.config.chrome_driver = self.driver  # Set reference in config
+            
             # Initialize scraper based on type
             if scraper_type == Platforms.JOBSTREET:
                 self.scrapping_probe = JobstreetScrapperMachine(self.logger)
@@ -45,6 +56,7 @@ class SeleniumMission():
             
         except Exception as e:
             self.logger.error(f"❌ Failed to initialize scraper: {str(e)}")
+            self.cleanup()
             raise
 
     def start(self):
@@ -56,7 +68,14 @@ class SeleniumMission():
             self.cleanup()
 
     def cleanup(self):
-        Config().chrome_driver.quit()
+        if self.driver:
+            self.logger.debug("🧹 Cleaning up Chrome driver")
+            self.driver.quit()
+            self.driver = None
+            self.config.chrome_driver = None
+            self.logger.debug("✨ Chrome driver cleaned up successfully")
+        else:
+            self.logger.debug("🤷 No Chrome driver to clean up")
 
     def __aenter__(self):
         return self

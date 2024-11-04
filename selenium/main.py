@@ -10,9 +10,7 @@ import logging
 config = Config()
 config.platforms = [Platforms.JOBSTREET.value, Platforms.KALIBRR.value]  # Use enum values
 
-# Initialize the Chrome driver
-config.init_chrome_driver(headless=True)
-config.date_range = DateRange.PAST_15_DAYS
+config.date_range = DateRange.PAST_24_HOURS
 config.storage_type = StorageType.CSV
 
 
@@ -23,7 +21,7 @@ log = get_logger("Control station")
 
 def scrape_all_sites():
     # Configure scrapers to run
-    scrapers = [Platforms.JOBSTREET]  # Ensure both platforms are included
+    scrapers = [Platforms.JOBSTREET,Platforms.KALIBRR]  # Ensure both platforms are included
 
     log.debug(f"Configured platforms: {config.platforms}")
 

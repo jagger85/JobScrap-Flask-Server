@@ -1,8 +1,4 @@
 from typing import List, Optional
-from selenium.webdriver.chrome.webdriver import WebDriver
-from selenium.webdriver.chrome.service import Service
-from selenium.webdriver.chrome.options import Options
-from selenium import webdriver
 from data_handler.storage_factory import StorageFactory
 from data_handler.storage_type import StorageType
 from models.date_range import DateRange
@@ -64,27 +60,6 @@ class Config:
         # Platform URLs
         instance._kalibrr_url = "https://www.kalibrr.com/home/co/Philippines/i/it-and-software?sort=Freshness"   
         instance._jobstreet_url = "https://www.jobstreet.com.ph/jobs/in-Philippines"
-
-    # Chrome driver properties
-    @property
-    def chrome_driver(self) -> Optional[WebDriver]:
-        """
-        Get the configured Chrome WebDriver instance.
-
-        This property provides access to the WebDriver instance used for browser automation.
-
-        Returns:
-            Optional[WebDriver]: The configured Chrome WebDriver instance or None if not initialized.
-
-        Example:
-            >>> config = Config()
-            >>> driver = config.chrome_driver
-        """
-        return self._chrome_driver
-
-    @chrome_driver.setter
-    def chrome_driver(self, driver: WebDriver):
-        self._chrome_driver = driver
 
     # Date range properties
     @property
@@ -227,27 +202,3 @@ class Config:
     @jobstreet_url.setter
     def jobstreet_url(self, url: str):
         self._jobstreet_url = url
-
-    def init_chrome_driver(self, headless: bool = True) -> WebDriver:
-        """
-        Initialize and configure a Chrome WebDriver instance.
-
-        This method sets up a new Chrome WebDriver with specified options
-        and stores it in the configuration.
-
-        Args:
-            headless (bool): Whether to run Chrome in headless mode. Defaults to True.
-
-        Returns:
-            WebDriver: The configured Chrome WebDriver instance.
-
-        Example:
-            >>> config = Config()
-            >>> driver = config.init_chrome_driver(headless=True)
-        """
-        service = Service("../chromedriver")
-        options = Options()
-        if headless:
-            options.add_argument("--headless=new")
-        self._chrome_driver = webdriver.Chrome(service=service, options=options)
-        return self._chrome_driver
