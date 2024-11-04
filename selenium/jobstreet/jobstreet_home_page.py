@@ -12,7 +12,7 @@ class JobstreetHomePage:
         self.driver = driver
         self.date_limit = '2d ago'
         file = FileContext()
-        with file.safe_open("selenium/jobstreet/jobstreet_locators.json", "r") as json_file:
+        with file.safe_open("jobstreet/jobstreet_locators.json", "r") as json_file:
             self.locators = json.load(json_file)
         
     def get_listings_cards_id(self):

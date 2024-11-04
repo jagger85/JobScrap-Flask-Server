@@ -23,7 +23,7 @@ log = get_logger("Control station")
 
 def scrape_all_sites():
     # Configure scrapers to run
-    scrapers = [Platforms.JOBSTREET, Platforms.KALIBRR]  # Ensure both platforms are included
+    scrapers = [Platforms.JOBSTREET]  # Ensure both platforms are included
 
     log.debug(f"Configured platforms: {config.platforms}")
 

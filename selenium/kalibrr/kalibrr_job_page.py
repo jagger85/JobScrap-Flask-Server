@@ -7,7 +7,7 @@ class KalibrrJobPage():
     def __init__(self,driver):
         self.driver = driver
         file = FileContext()
-        with file.safe_open("selenium/kalibrr/kalibrr_locators.json", "r") as json_file:
+        with file.safe_open("kalibrr/kalibrr_locators.json", "r") as json_file:
             self.locators = json.load(json_file)
 
     def get_job_description(self):
