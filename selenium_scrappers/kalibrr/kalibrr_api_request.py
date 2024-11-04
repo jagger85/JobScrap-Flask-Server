@@ -4,6 +4,7 @@ from models.date_range import DateRange
 from models.JobListing import JobListing
 from logger.logger import get_logger
 from data_handler.base_data_handler import BaseDataHandler
+from bs4 import BeautifulSoup
 
 class KalibrrAPIClient:
     def __init__(self, data_handler: BaseDataHandler, date_range: DateRange = None):
@@ -156,32 +157,34 @@ class KalibrrAPIClient:
         location_components = listing_data.get("google_location", {}).get("address_components", {})
         location = f"{location_components.get('city', '')}, {location_components.get('region', '')}"
         
+        # Clean up the description
+        description = listing_data["description"]
+        soup = BeautifulSoup(description, 'html.parser')
+        
+        # Convert <li> items to bullet points
+        for li in soup.find_all('li'):
+            li.replace_with(f"• {li.get_text().strip()}\n")
+        
+        # Convert <p> to new lines
+        for p in soup.find_all('p'):
+            p.replace_with(f"{p.get_text().strip()}\n\n")
+        
+        # Get clean text and remove extra whitespace
+        clean_description = soup.get_text().strip()
+        clean_description = '\n'.join(line.strip() for line in clean_description.splitlines() if line.strip())
+
+        # Parse the ISO format date and convert to MM-DD-YY
+        listing_date = datetime.fromisoformat(listing_data["activation_date"].split('.')[0]).strftime("%m-%d-%y")
+
         return JobListing(
             site="Kalibrr",
-            listing_date=listing_data["activation_date"],
+            listing_date=listing_date,
             job_title=listing_data["name"],
             company=listing_data["company_name"],
             location=location.strip(", "),
             employment_type=listing_data["tenure"],
             position=listing_data.get("function", "IT and Software"),
             salary=salary,
-            description=listing_data["description"],
+            description=clean_description,
             url=f"https://www.kalibrr.com/c/{listing_data['company']['code']}/jobs/{listing_data['slug']}"
         )
-
-# Example usage:
-if __name__ == "__main__":
-    from data_handler.json_data_handler import JsonDataHandler  # Example handler
-    
-    data_handler = JsonDataHandler()
-    client = KalibrrAPIClient(
-        data_handler=data_handler,
-        date_range=DateRange.PAST_WEEK
-    )
-    
-    try:
-        listings = client.retrieve_job_listings()
-        for listing in listings:
-            print(f"{listing.job_title} - {listing.listing_date}")
-    except Exception as e:
-        print(f"Error: {str(e)}")

@@ -1,3 +1,4 @@
+import os
 import json
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
@@ -5,13 +6,16 @@ from selenium.webdriver.support import expected_conditions as EC
 from selenium.common.exceptions import TimeoutException, NoSuchElementException
 from data_handler.file_context import FileContext
 
+# Define the absolute path to the locators directory
+LOCATORS_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "jobstreet_locators.json")
+
 class JobstreetHomePage:
     def __init__(self, driver, logger):
         global log
         log = logger
         self.driver = driver
         file = FileContext()
-        with file.safe_open("jobstreet/jobstreet_locators.json", "r") as json_file:
+        with file.safe_open(LOCATORS_DIR, "r") as json_file:
             self.locators = json.load(json_file)
         
     def get_listings_cards_id(self):

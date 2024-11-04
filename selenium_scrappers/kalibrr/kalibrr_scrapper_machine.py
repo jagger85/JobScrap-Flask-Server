@@ -1,5 +1,5 @@
-from base_scrap_state_machine import BaseScrapStateMachine
-from kalibrr.kalibrr_navigator import KalibrrNavigator
+from ..base_scrap_state_machine import BaseScrapStateMachine
+from .kalibrr_navigator import KalibrrNavigator
 from models.JobListing import JobListing
 from typing import List
 from config import Config

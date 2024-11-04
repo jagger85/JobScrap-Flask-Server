@@ -2,6 +2,10 @@ import json
 from selenium.webdriver.common.by import By
 from data_handler.file_context import FileContext
 from selenium.common.exceptions import NoSuchElementException
+import os
+
+# Define the absolute path to the locators directory
+LOCATORS_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "kalibrr_locators.json")
 
 class KalibrrHomePage:
     """
@@ -24,7 +28,7 @@ class KalibrrHomePage:
         log = logger
         self.driver = driver
         file = FileContext()
-        with file.safe_open("kalibrr/kalibrr_locators.json", "r") as json_file:
+        with file.safe_open(LOCATORS_DIR, "r") as json_file:
             self.locators = json.load(json_file)
 
     def load_more_jobs_button(self):

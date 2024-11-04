@@ -1,5 +1,5 @@
-from base_scrap_state_machine import BaseScrapStateMachine
-from jobstreet.jobstreet_navigator import JobstreetNavigator
+from ..base_scrap_state_machine import BaseScrapStateMachine
+from .jobstreet_navigator import JobstreetNavigator
 from typing import List
 from models.JobListing import JobListing
 from datetime import datetime, timedelta

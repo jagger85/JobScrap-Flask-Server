@@ -1,10 +1,11 @@
 from config import Config
-from kalibrr.kalibrr_scrapper_machine import KalibrrScrapperMachine
-from jobstreet.jobstreet_scrapper_machine import JobstreetScrapperMachine
+from .kalibrr.kalibrr_scrapper_machine import KalibrrScrapperMachine
+from .jobstreet.jobstreet_scrapper_machine import JobstreetScrapperMachine
 from models.platforms import Platforms
 from selenium import webdriver
 from selenium.webdriver.chrome.service import Service
 from selenium.webdriver.chrome.options import Options
+import os
 
 """
     Core functionality for web scraping orchestration.
@@ -36,9 +37,11 @@ class SeleniumMission():
         self.config = Config()
         
         try:
-            # Initialize Chrome driver
+            # Initialize Chrome driver with project-relative path
             self.logger.debug("🔧 Initializing Chrome driver")
-            service = Service("../chromedriver")
+            current_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+            chromedriver_path = os.path.join(current_dir, "chromedriver")
+            service = Service(chromedriver_path)
             options = Options()
             options.add_argument("--headless=new")
             self.driver = webdriver.Chrome(service=service, options=options)
