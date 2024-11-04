@@ -10,13 +10,12 @@ class JobstreetHomePage:
         global log
         log = logger
         self.driver = driver
-        self.date_limit = '2d ago'
         file = FileContext()
         with file.safe_open("jobstreet/jobstreet_locators.json", "r") as json_file:
             self.locators = json.load(json_file)
         
     def get_listings_cards_id(self):
-        """Get all job listing IDs from current page that are within date limit"""
+        """Get all job listing IDs from current page"""
         try:
             log.debug("Waiting for job cards to load...")
             WebDriverWait(self.driver, 10).until(
@@ -28,23 +27,13 @@ class JobstreetHomePage:
             
             for card in listing_cards:
                 try:
-                    # Get listing date
-                    date_element = card.find_element(By.XPATH, self.locators["jobListing"]["jobListingDate"]["locator"])
-                    listing_date = date_element.text
-                    
-                    # Check if within date limit
-                    if self._is_within_date_limit(listing_date):
-                        # Get listing ID directly from data attribute
-                        listing_id = card.get_attribute('data-job-id')
-                        if listing_id:
-                            log.progress(f"Extracted listing ID: {listing_id}")
-                            listing_ids.append(listing_id)
-                        else:
-                            log.error("\nCould not find data-job-id attribute")
+                    # Get listing ID directly from data attribute
+                    listing_id = card.get_attribute('data-job-id')
+                    if listing_id:
+                        log.progress(f"Extracted listing ID: {listing_id}")
+                        listing_ids.append(listing_id)
                     else:
-                        log.progress_complete("Extracted listings complete")
-                        log.debug(f"Listing date {listing_date} exceeds limit {self.date_limit}")
-                        return listing_ids  # Stop processing if date limit exceeded
+                        log.error("\nCould not find data-job-id attribute")
                         
                 except NoSuchElementException as e:
                     log.error(f"Error extracting data from card: {str(e)}")
@@ -153,7 +142,3 @@ class JobstreetHomePage:
             log.error(f"Error extracting listing details: {str(e)}")
             log.error(f"Current URL: {self.driver.current_url}")
             return None
-
-    def _is_within_date_limit(self, listing_date):
-        """Check if listing date is within the specified date limit"""
-        return listing_date != self.date_limit
