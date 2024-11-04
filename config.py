@@ -1,8 +1,8 @@
 from typing import List, Optional
 from data_handler.storage_factory import StorageFactory
 from data_handler.storage_type import StorageType
-from models.date_range import DateRange
-from models.platforms import Platforms
+from constants.date_range import DateRange
+from constants.platforms import Platforms
 
 
 class Config:
