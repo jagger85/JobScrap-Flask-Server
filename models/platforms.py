@@ -1,8 +1,8 @@
 from enum import Enum
 
 class Platforms(Enum):
-    GOOGLE = "google"
-    KALIBRR = "kalibrr"
-    JOBSTREET = "jobstreet"
-    INDEED = "indeed"
-    LINKEDIN = "linkedIn"
+    GOOGLE = "Google"
+    KALIBRR = "Kalibrr"
+    JOBSTREET = "Jobstreet"
+    INDEED = "Indeed"
+    LINKEDIN = "LinkedIn"
