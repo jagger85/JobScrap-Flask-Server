@@ -1,10 +1,14 @@
 from datetime import datetime, timezone, timedelta
 import requests
-from models.date_range import DateRange
+from constants.date_range import DateRange
+from constants.platforms import Platforms
+from constants.platform_states import PlatformStates
 from models.JobListing import JobListing
-from logger.logger import get_logger
+from logger.logger import get_logger, get_sse_logger
 from data_handler.base_data_handler import BaseDataHandler
 from bs4 import BeautifulSoup
+from server.state_manager import StateManager
+from server.sse_observer import SSEObserver
 
 class KalibrrAPIClient:
     def __init__(self, data_handler: BaseDataHandler, date_range: DateRange = None):
@@ -12,6 +16,13 @@ class KalibrrAPIClient:
         self.base_url = "https://www.kalibrr.com/kjs/job_board/search"
         self.data_handler = data_handler
         self.date_range = date_range
+        self.state_manager = StateManager()
+        
+        # Add SSE observer
+        sse_log = get_sse_logger('sse_logger')
+        sse_handler = sse_log.handlers[0]
+        self.sse_observer = SSEObserver(sse_handler)
+        self.state_manager.add_observer(self.sse_observer)
         
         if date_range:
             self.start_date, self.end_date = self.get_date_range(date_range)
@@ -48,11 +59,16 @@ class KalibrrAPIClient:
         self.log.info(f"Starting Kalibrr job listings retrieval for date range: {self.date_range.value if self.date_range else 'All'}")
         
         try:
+            # Set state to PROCESSING when starting
+            self.state_manager.set_platform_state(Platforms.KALIBRR, PlatformStates.PROCESSING)
+            self.sse_observer.notify_message("Starting Kalibrr job listings retrieval")
+            
             listings = self.get_listings_by_date_range()
             self.log.info(f"Successfully retrieved {len(listings)} job listings from Kalibrr")
             
             if not listings:
                 self.log.warning("No job listings found for the specified criteria")
+                self.state_manager.set_platform_state(Platforms.KALIBRR, PlatformStates.FINISHED)
                 return listings
             
             # Store the snapshot
@@ -60,20 +76,25 @@ class KalibrrAPIClient:
                 self.log.debug("Storing job listings snapshot")
                 self.data_handler.store_snapshot(listings)
                 self.log.info("Successfully stored job listings snapshot")
+                self.state_manager.set_platform_state(Platforms.KALIBRR, PlatformStates.FINISHED)
+                return listings
+                
             except Exception as e:
                 self.log.error(f"Failed to store job listings snapshot: {str(e)}")
+                self.state_manager.set_platform_state(Platforms.KALIBRR, PlatformStates.ERROR)
                 raise
-            
-            return listings
             
         except requests.RequestException as e:
             self.log.error(f"Failed to fetch job listings from Kalibrr API: {str(e)}")
+            self.state_manager.set_platform_state(Platforms.KALIBRR, PlatformStates.ERROR)
             raise
         except ValueError as e:
             self.log.error(f"Invalid date range provided: {str(e)}")
+            self.state_manager.set_platform_state(Platforms.KALIBRR, PlatformStates.ERROR)
             raise
         except Exception as e:
             self.log.error(f"Unexpected error during job listings retrieval: {str(e)}")
+            self.state_manager.set_platform_state(Platforms.KALIBRR, PlatformStates.ERROR)
             raise
 
     def get_listings_by_date_range(self) -> list[JobListing]:
@@ -83,34 +104,41 @@ class KalibrrAPIClient:
         
         while True:
             self.log.debug(f"Fetching batch of listings - offset: {offset}, limit: {limit}")
-            response = self.fetch_listings(limit=limit, offset=offset)
-            listings = response.get("jobs", [])
             
-            if not listings:
-                self.log.debug("No more listings found")
-                break
+            try:
+                response = self.fetch_listings(limit=limit, offset=offset)
+                listings = response.get("jobs", [])
                 
-            filtered_listings = []
-            for listing in listings:
-                listing_date = datetime.fromisoformat(listing["activation_date"].replace("Z", "+00:00"))
-                
-                if self.start_date and listing_date < self.start_date:
-                    self.log.debug(f"Skipping listing {listing['name']}: before start date")
-                    continue
-                if self.end_date and listing_date > self.end_date:
-                    self.log.debug(f"Skipping listing {listing['name']}: after end date")
-                    continue
+                if not listings:
+                    self.log.debug("No more listings found")
+                    break
                     
-                job_listing = self.map_kalibrr_listing_to_job_listing(listing)
-                filtered_listings.append(job_listing)
+                filtered_listings = []
+                for listing in listings:
+                    listing_date = datetime.fromisoformat(listing["activation_date"].replace("Z", "+00:00"))
+                    
+                    if self.start_date and listing_date < self.start_date:
+                        self.log.debug(f"Skipping listing {listing['name']}: before start date")
+                        continue
+                    if self.end_date and listing_date > self.end_date:
+                        self.log.debug(f"Skipping listing {listing['name']}: after end date")
+                        continue
+                        
+                    job_listing = self.map_kalibrr_listing_to_job_listing(listing)
+                    filtered_listings.append(job_listing)
+                    
+                if not filtered_listings:
+                    self.log.debug("No listings passed the date filter")
+                    break
+                    
+                self.log.debug(f"Added {len(filtered_listings)} listings to results")
+                all_listings.extend(filtered_listings)
+                offset += limit
                 
-            if not filtered_listings:
-                self.log.debug("No listings passed the date filter")
-                break
-                
-            self.log.debug(f"Added {len(filtered_listings)} listings to results")
-            all_listings.extend(filtered_listings)
-            offset += limit
+            except Exception as e:
+                self.log.error(f"Error while fetching batch: {str(e)}")
+                self.state_manager.set_platform_state(Platforms.KALIBRR, PlatformStates.ERROR)
+                raise
             
         self.log.debug(f"Total listings retrieved: {len(all_listings)}")
         return all_listings

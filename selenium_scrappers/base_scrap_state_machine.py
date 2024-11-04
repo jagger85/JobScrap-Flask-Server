@@ -3,6 +3,8 @@ from abc import ABC, abstractmethod
 from models.JobListing import JobListing
 from typing import List
 from config import Config
+from server.state_manager import StateManager
+
 states = [
     "idle",
     "loading_listings",
@@ -58,6 +60,7 @@ class BaseScrapStateMachine(ABC):
     def __init__(self, logger):
         global log
         log = logger
+        self.state_manager = StateManager()
         self.machine = Machine(
             model=self, states=states, transitions=transitions, initial="idle"
         )

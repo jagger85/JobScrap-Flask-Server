@@ -9,7 +9,7 @@ class SSELoggingHandler(logging.Handler):
         self.queue = Queue()
 
     def emit(self, record):
-        log_entry = f"{record.levelname}: {self.format(record)}"  # Include log level
+        log_entry = f"{record}"  # Include log level
         self.queue.put(log_entry)
 
     def get_message(self):

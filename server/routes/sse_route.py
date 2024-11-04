@@ -1,5 +1,8 @@
 from flask import Blueprint, Response, stream_with_context
 from logger.logger import get_sse_logger
+from server.state_manager import StateManager
+from constants.platforms import Platforms
+from constants.message_type import MessageType
 import json
 import time
 
@@ -9,33 +12,35 @@ sse_bp = Blueprint('sse', __name__)
 def sse_stream():
     def event_stream():
         # Send initial connection message
-        yield f"data: {json.dumps({'message': 'Connection established', 'type': 'info'})}\n\n"
+        yield f"data: {json.dumps({'message': 'Connection established', 'type': MessageType.INFO.value})}\n\n"
         
-        start_time = time.time()
         sse_log = get_sse_logger('sse_logger')
         sse_handler = sse_log.handlers[0]
         
         try:
             while True:
                 message = sse_handler.get_message()
-                current_time = time.time()
-                connection_time = int(current_time - start_time)
                 
                 if message:
-                    # Ensure message is not None/undefined before sending
-                    data = {
-                        'message': str(message),  # Convert to string to ensure valid JSON
-                        'connection_time': connection_time,
-                        'type': 'message'
-                    }
+                    # If message is a string, it's a raw log message that needs to be formatted
+                    if isinstance(message, str):
+                        try:
+                            # Try to parse as JSON first in case it's already formatted
+                            data = json.loads(message)
+                        except json.JSONDecodeError:
+                            # If it's not JSON, it's a raw message
+                            data = {
+                                'type': MessageType.LOG_MESSAGE.value,
+                                'message': message
+                            }
+                    else:
+                        # If it's already a dict, use it as is
+                        data = message
+                    
                     yield f"data: {json.dumps(data)}\n\n"
                 else:
-                    # Send heartbeat with type indicator
-                    data = {
-                        'connection_time': connection_time,
-                        'type': 'heartbeat'
-                    }
-                    yield f"data: {json.dumps(data)}\n\n"
+                    # Simple heartbeat
+                    yield f"data: {json.dumps({'type': 'heartbeat', 'heartbeat': True})}\n\n"
                     time.sleep(3)
                     
         except GeneratorExit:
