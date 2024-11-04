@@ -6,6 +6,7 @@ from selenium import webdriver
 from data_handler.storage_factory import StorageFactory
 from data_handler.storage_type import StorageType
 from models.date_range import DateRange
+from models.platforms import Platforms
 
 
 class Config:
@@ -166,11 +167,25 @@ class Config:
 
     # Platforms properties
     @property
-    def platforms(self) -> List[str]:
+    def platforms(self) -> List[Platforms]:
+        """
+        Get the list of platforms to scrape.
+
+        This property contains the platforms used for job scraping.
+
+        Returns:
+            List[Platforms]: List of Platforms enum members for scraping.
+
+        Example:
+            >>> config = Config()
+            >>> config.platforms = [Platforms.KALIBRR, Platforms.JOBSTREET]
+            >>> print(config.platforms)
+            [Platforms.KALIBRR, Platforms.JOBSTREET]
+        """
         return self._platforms
 
     @platforms.setter
-    def platforms(self, platforms: List[str]):
+    def platforms(self, platforms: List[Platforms]):
         self._platforms = platforms
 
     # Kalibrr URL properties
@@ -230,7 +245,7 @@ class Config:
             >>> config = Config()
             >>> driver = config.init_chrome_driver(headless=True)
         """
-        service = Service("selenium/chromedriver")
+        service = Service("../chromedriver")
         options = Options()
         if headless:
             options.add_argument("--headless=new")

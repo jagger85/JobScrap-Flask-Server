@@ -1,7 +1,7 @@
-from enum import Enum
 from config import Config
 from kalibrr.kalibrr_scrapper_machine import KalibrrScrapperMachine
 from jobstreet.jobstreet_scrapper_machine import JobstreetScrapperMachine
+from models.platforms import Platforms
 
 """
     Core functionality for web scraping orchestration.
@@ -11,7 +11,7 @@ from jobstreet.jobstreet_scrapper_machine import JobstreetScrapperMachine
 
     Args:
         logger: Logger instance for operation tracking
-        scraper_type (ScraperType): Enum indicating which scraper implementation to use
+        scraper_type (Platforms): Enum indicating which scraper implementation to use
                                    (JOBSTREET or KALIBRR)
 
     Returns:
@@ -23,24 +23,20 @@ from jobstreet.jobstreet_scrapper_machine import JobstreetScrapperMachine
 
     Example:
         >>> logger = get_logger('Kalibrr')
-        >>> mission = SeleniumMission(logger, ScraperType.KALIBRR)
+        >>> mission = SeleniumMission(logger, Platforms.KALIBRR)
         >>> mission.start()
 """
 
-class ScraperType(Enum):
-    JOBSTREET = "jobstreet"
-    KALIBRR = "kalibrr"
-
 class SeleniumMission():
-    def __init__(self, logger, scraper_type: ScraperType):
+    def __init__(self, logger, scraper_type: Platforms):
         self.logger = logger
         self.config = Config()
         
         try:
             # Initialize scraper based on type
-            if scraper_type == ScraperType.JOBSTREET:
+            if scraper_type == Platforms.JOBSTREET:
                 self.scrapping_probe = JobstreetScrapperMachine(self.logger)
-            elif scraper_type == ScraperType.KALIBRR:
+            elif scraper_type == Platforms.KALIBRR:
                 self.scrapping_probe = KalibrrScrapperMachine(self.logger)
             else:
                 raise ValueError(f"Unsupported scraper type: {scraper_type}")

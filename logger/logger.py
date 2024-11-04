@@ -1,6 +1,6 @@
 import logging
 from colorlog import ColoredFormatter
-from sse_handler import SSELoggingHandler
+from .sse_handler import SSELoggingHandler
 import sys
 
 # Custom log level

@@ -1,5 +1,6 @@
 from logger.logger import get_logger, set_log_level
-from selenium_mission import SeleniumMission, ScraperType
+from selenium_mission import SeleniumMission
+from models.platforms import Platforms
 from models.date_range import DateRange
 from config import Config
 from data_handler.storage_type import StorageType
@@ -7,7 +8,7 @@ import logging
 
 # Initialize config
 config = Config()
-config.platforms = ["Jobstreet"]
+config.platforms = [Platforms.JOBSTREET.value, Platforms.KALIBRR.value]  # Use enum values
 
 # Initialize the Chrome driver
 config.init_chrome_driver(headless=True)
@@ -22,13 +23,18 @@ log = get_logger("Control station")
 
 def scrape_all_sites():
     # Configure scrapers to run
-    scrapers = [(ScraperType.KALIBRR, "Kalibrr"), (ScraperType.JOBSTREET, "Jobstreet")]
+    scrapers = [Platforms.JOBSTREET, Platforms.KALIBRR]  # Ensure both platforms are included
 
-    for scraper_type, name in scrapers:
-        if name in config.platforms:  # Only run if platform is enabled in config
-            log.info(f"📍 Starting expedition for {name}")
-            mission = SeleniumMission(get_logger(name), scraper_type)
+    log.debug(f"Configured platforms: {config.platforms}")
+
+    for scraper_type in scrapers:
+        log.debug(f"Checking platform: {scraper_type.value}")
+        if scraper_type.value in config.platforms:  # Only run if platform is enabled in config
+            log.info(f"📍 Starting expedition for {scraper_type.name}")
+            mission = SeleniumMission(get_logger(scraper_type.name), scraper_type)
             mission.start()
+        else:
+            log.info(f"Skipping platform: {scraper_type.name} as it is not enabled in config")
 
 
 if __name__ == "__main__":
