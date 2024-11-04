@@ -1,7 +1,5 @@
 from flask import Blueprint, Response, stream_with_context
 from logger.logger import get_sse_logger
-from server.state_manager import StateManager
-from constants.platforms import Platforms
 from constants.message_type import MessageType
 import json
 import time
