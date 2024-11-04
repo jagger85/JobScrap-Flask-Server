@@ -51,8 +51,11 @@ class JobstreetNavigator:
                 # Construct the new URL with the incremented page number
                 if "page=" in self.page:
                     new_url = base_url + f"page={next_page}"
+                    log.debug(f'Next page: {new_url}')
                 else:
                     new_url = self.page + f"&page={next_page}"
+                    log.debug(f'Next page: {new_url}')
+
 
                 # Check if the new page exists by attempting to load it
                 self.driver.get(new_url)
@@ -66,7 +69,7 @@ class JobstreetNavigator:
             
             log.progress_complete(f"Completed collection of {len(self.job_listings)} listings")
             return self.job_listings
-            
+           
         except Exception as e:
             log.error(f"Error in request_listings: {str(e)}")
             return []
