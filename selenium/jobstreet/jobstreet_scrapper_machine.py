@@ -80,12 +80,14 @@ def convert_relative_dates_to_absolute(date_str):
         str: A string representing the absolute date in MM-DD-YY format.
     """
     now = datetime.now()
-    match = re.match(r"Posted (\d+)([hd]) ago", date_str)
+    match = re.match(r"Posted (\d+)([mhd]) ago", date_str)
     if match:
         value, unit = match.groups()
         value = int(value)
 
-        if unit == 'h':  # hours
+        if unit == 'm':  # minutes
+            date = now - timedelta(minutes=value)
+        elif unit == 'h':  # hours
             date = now - timedelta(hours=value)
         elif unit == 'd':  # days
             date = now - timedelta(days=value)
