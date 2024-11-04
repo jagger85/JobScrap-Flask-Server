@@ -2,3 +2,5 @@ requests
 python-dotenv
 colorlog
 selenium
+flask
+flask-cors
