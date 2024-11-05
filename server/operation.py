@@ -1,10 +1,8 @@
-from logger.logger import get_logger, set_log_level, get_sse_logger
+from logger.logger import get_logger, set_log_level
 from selenium_scrappers import SeleniumMission
 from constants.platforms import Platforms
 from constants.date_range import DateRange
-from selenium_scrappers.kalibrr.kalibrr_api_request import (
-    KalibrrAPIClient as kalibrr_client,
-)
+from selenium_scrappers.kalibrr.kalibrr_api_request import KalibrrAPIClient
 from config import Config
 from data_handler import StorageType
 import logging
@@ -21,22 +19,17 @@ class Operation:
 
         set_log_level(logging.DEBUG)
         self.log = get_logger("ScraperOperation")
-        self.state_manager = StateManager()
-
+        
         # Initialize state management
         self.state_manager = StateManager()
-        
-        # Setup SSE observer
-        sse_log = get_sse_logger('sse_logger')
-        sse_handler = sse_log.handlers[0]
-        self.sse_observer = SSEObserver(sse_handler)
+        self.sse_observer = SSEObserver(self.log.handlers[1])  # Get SSE handler from logger
         self.state_manager.add_observer(self.sse_observer)
         
         # Initialize platforms
         self.platforms = platforms
         for platform in self.platforms:
             self.state_manager.set_platform_state(platform, PlatformStates.WAITING)
-            self.sse_observer.notify_message(f"Initialized {platform.value}")
+            self.log.info(f"Initialized {platform.value}")
 
     def scrape_all_sites(self):
         # Platform-specific scraping handlers
@@ -51,10 +44,10 @@ class Operation:
         for scraper_type in platform_handlers:
             self.log.debug(f"Checking platform: {scraper_type.value}")
             if scraper_type.value in self.config.platforms:
-                self.sse_observer.notify_message(f"Starting {scraper_type.name} expedition")
                 platform_handlers[scraper_type](scraper_type)
+                
             else:
-                self.log.info(
+                self.log.debug(
                     f"Skipping platform: {scraper_type.name} as it is not enabled in config"
                 )
 
@@ -63,8 +56,9 @@ class Operation:
         mission.start()
 
     def handle_kalibrr(self, platform):
-        client = kalibrr_client(self.config.storage, self.config.date_range)
+        client = KalibrrAPIClient(self.config.storage, self.config.date_range)
         client.retrieve_job_listings()
+        
 
     def handle_indeed(self, platform):
         self.log.warning("Operation Indeed not implemented yet")

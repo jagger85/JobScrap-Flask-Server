@@ -60,7 +60,7 @@ class CsvHandler(BaseDataHandler):
         file_name = f"{job_listings[0].site}_jobs_{current_time}.csv"
         full_file_path = os.path.join(root_dir, "output", file_name)
 
-        log.info("📡  Received data")
+        log.debug("📡  Received data")
 
         # Open the CSV file and write the job listings
         with open(full_file_path, "w", newline="") as csvfile:
@@ -68,7 +68,7 @@ class CsvHandler(BaseDataHandler):
             writer.writeheader()
             for job_listing in job_listings:
                 writer.writerow(job_listing.__dict__)
-        log.info(f"📥  Wrote to {full_file_path}")
+        log.debug(f"📥  Wrote to {full_file_path}")
     
     def store_snapshot_list(self, dataset_id: str, snapshot_list: json):
         """
@@ -114,7 +114,7 @@ class CsvHandler(BaseDataHandler):
                 }
                 writer.writerow(row)
 
-        log.info(f"📥  Wrote snapshot status list for dataset {dataset_id} to {full_file_path}")
+        log.debug(f"📥  Wrote snapshot status list for dataset {dataset_id} to {full_file_path}")
         return full_file_path
     
     def get_snapshot(self):

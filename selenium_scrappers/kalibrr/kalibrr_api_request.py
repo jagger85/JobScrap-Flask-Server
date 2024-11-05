@@ -4,7 +4,7 @@ from constants.date_range import DateRange
 from constants.platforms import Platforms
 from constants.platform_states import PlatformStates
 from models.JobListing import JobListing
-from logger.logger import get_logger, get_sse_logger
+from logger.logger import get_logger
 from data_handler.base_data_handler import BaseDataHandler
 from bs4 import BeautifulSoup
 from server.state_manager import StateManager
@@ -16,12 +16,10 @@ class KalibrrAPIClient:
         self.base_url = "https://www.kalibrr.com/kjs/job_board/search"
         self.data_handler = data_handler
         self.date_range = date_range
-        self.state_manager = StateManager()
         
-        # Add SSE observer
-        sse_log = get_sse_logger('sse_logger')
-        sse_handler = sse_log.handlers[0]
-        self.sse_observer = SSEObserver(sse_handler)
+        # Initialize state management
+        self.state_manager = StateManager()
+        self.sse_observer = SSEObserver(self.log.handlers[1])  # Get SSE handler from logger
         self.state_manager.add_observer(self.sse_observer)
         
         if date_range:
@@ -61,7 +59,7 @@ class KalibrrAPIClient:
         try:
             # Set state to PROCESSING when starting
             self.state_manager.set_platform_state(Platforms.KALIBRR, PlatformStates.PROCESSING)
-            self.sse_observer.notify_message("Starting Kalibrr job listings retrieval")
+            self.log.info("Starting Kalibrr job listings retrieval")
             
             listings = self.get_listings_by_date_range()
             self.log.info(f"Successfully retrieved {len(listings)} job listings from Kalibrr")
@@ -140,7 +138,8 @@ class KalibrrAPIClient:
                 self.state_manager.set_platform_state(Platforms.KALIBRR, PlatformStates.ERROR)
                 raise
             
-        self.log.debug(f"Total listings retrieved: {len(all_listings)}")
+        self.log.info(f"Total listings retrieved: {len(all_listings)}")
+
         return all_listings
 
     def fetch_listings(self, limit=15, offset=0):

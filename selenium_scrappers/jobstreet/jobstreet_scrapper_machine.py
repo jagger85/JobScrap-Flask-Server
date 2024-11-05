@@ -8,8 +8,7 @@ from config import Config
 from constants.date_range import DateRange
 from constants.platforms import Platforms
 from constants.platform_states import PlatformStates
-from server.sse_observer import SSEObserver
-from logger.logger import get_sse_logger
+
 
 class JobstreetScrapperMachine(BaseScrapStateMachine):
     def __init__(self, logger):
@@ -17,15 +16,10 @@ class JobstreetScrapperMachine(BaseScrapStateMachine):
         log = logger
         super().__init__(logger)
         
-        # Add SSE observer
-        sse_log = get_sse_logger('sse_logger')
-        sse_handler = sse_log.handlers[0]
-        self.sse_observer = SSEObserver(sse_handler)
-        self.state_manager.add_observer(self.sse_observer)
         
         # Set initial state to PROCESSING when starting scraping
         self.state_manager.set_platform_state(Platforms.JOBSTREET, PlatformStates.PROCESSING)
-        self.sse_observer.notify_message("Starting Jobstreet scraping")
+
         self.driver.get(self.build_jobstreet_url())
 
     def build_jobstreet_url(self) -> str:
@@ -92,7 +86,7 @@ class JobstreetScrapperMachine(BaseScrapStateMachine):
     def process_error(self):
         error_message = "Error occurred during Jobstreet scraping"
         log.error(error_message)
-        self.sse_observer.notify_message(error_message)
+
         self.state_manager.set_platform_state(Platforms.JOBSTREET, PlatformStates.ERROR)
 
 
