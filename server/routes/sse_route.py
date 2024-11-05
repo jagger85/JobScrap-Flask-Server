@@ -1,5 +1,5 @@
 from flask import Blueprint, Response, stream_with_context
-from logger.logger import get_sse_logger
+from logger.logger import get_logger
 from constants.message_type import MessageType
 import json
 import time
@@ -8,40 +8,37 @@ sse_bp = Blueprint('sse', __name__)
 
 @sse_bp.route('/jobsweep-sse')
 def sse_stream():
+    """Stream server-sent events for job updates.
+
+    This route establishes a connection for streaming events related to job updates.
+    It sends an initial connection message and continues to stream messages from the
+    SSE handler, including heartbeat messages at regular intervals.
+
+    Returns:
+        Response: A streaming response with content type 'text/event-stream'.
+    """
     def event_stream():
-        # Send initial connection message
-        yield f"data: {json.dumps({'message': 'Connection established', 'type': MessageType.INFO.value})}\n\n"
+        # Get the logger and its SSE handler
+        logger = get_logger('sse_stream')
+        sse_handler = logger.handlers[1]  # SSE handler is the second handler
         
-        sse_log = get_sse_logger('sse_logger')
-        sse_handler = sse_log.handlers[0]
+        # Send initial connection message
+        yield f"data: {json.dumps({'type': MessageType.INFO.value, 'message': 'Connection established'})}\n\n"
         
         try:
             while True:
                 message = sse_handler.get_message()
                 
                 if message:
-                    # If message is a string, it's a raw log message that needs to be formatted
-                    if isinstance(message, str):
-                        try:
-                            # Try to parse as JSON first in case it's already formatted
-                            data = json.loads(message)
-                        except json.JSONDecodeError:
-                            # If it's not JSON, it's a raw message
-                            data = {
-                                'type': MessageType.LOG_MESSAGE.value,
-                                'message': message
-                            }
-                    else:
-                        # If it's already a dict, use it as is
-                        data = message
-                    
-                    yield f"data: {json.dumps(data)}\n\n"
+                    # Messages are already properly formatted by the SSELoggingHandler
+                    yield f"data: {json.dumps(message)}\n\n"
                 else:
-                    # Simple heartbeat
-                    yield f"data: {json.dumps({'type': 'heartbeat', 'heartbeat': True})}\n\n"
+                    # Heartbeat message using the defined enum
+                    yield f"data: {json.dumps({'type': MessageType.HEARTBEAT.value, 'heartbeat': True})}\n\n"
                     time.sleep(3)
                     
         except GeneratorExit:
+            logger.debug("SSE connection closed")
             pass
 
     return Response(

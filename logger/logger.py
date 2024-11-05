@@ -1,7 +1,7 @@
 import logging
 from colorlog import ColoredFormatter
-from .sse_handler import SSELoggingHandler
 import sys
+from queue import Queue
 
 # Custom log level
 PROGRESS = 25  # Between INFO (20) and WARNING (30)
@@ -41,8 +41,51 @@ colored_formatter = ColoredFormatter(
     style="%",
 )
 
+# Add a plain formatter for SSE messages
+SSE_FORMAT = "%(message)s"  # Just the message without colors or timestamps
+sse_formatter = logging.Formatter(SSE_FORMAT)
+
+class SSELoggingHandler(logging.Handler):
+    def __init__(self):
+        super().__init__()
+        self.queue = Queue()
+
+    def emit(self, record):
+        try:
+            # Map logging levels to message types
+            level_to_type = {
+                logging.DEBUG: "debug",
+                logging.INFO: "info",
+                PROGRESS: "progress",
+                logging.WARNING: "warning",
+                logging.ERROR: "error",
+                logging.CRITICAL: "error",
+            }
+
+            # Create a clean message structure
+            message = {
+                "type": level_to_type.get(record.levelno, "info"),
+                "message": record.getMessage()  # Get clean message without formatting
+            }
+            
+            self.queue.put(message)
+        except Exception:
+            self.handleError(record)
+
+    def get_message(self):
+        """
+        Retrieves the next message from the queue if available.
+        
+        Returns:
+            dict: Message containing type and content, or None if queue is empty
+        """
+        if not self.queue.empty():
+            return self.queue.get()
+        return None
+
 # Initialize SSE handler
 sse_handler = SSELoggingHandler()
+sse_handler.setFormatter(sse_formatter)  # Use plain formatter instead of colored
 
 # Custom StreamHandler for progress messages
 class ProgressStreamHandler(logging.StreamHandler):
@@ -50,10 +93,13 @@ class ProgressStreamHandler(logging.StreamHandler):
         try:
             msg = self.format(record)
             stream = self.stream
+            # Also send to SSE handler
+            sse_handler.emit(record)
+            
             if record.levelno == PROGRESS:
                 # Dynamically clear line based on message length
                 clear_line = '\r' + ' ' * (len(msg) + 10) + '\r'
-                stream.write(clear_line)  # Clear line before printing progress
+                stream.write(clear_line)
                 stream.write(msg)
                 stream.flush()
             else:
@@ -95,7 +141,8 @@ def get_logger(name):
     # Ensure single handler by removing any existing ones
     if not logger.handlers:
         logger.addHandler(console_handler)
-        logger.addHandler(ErrorReportHandler()) 
+        logger.addHandler(sse_handler)
+        logger.addHandler(ErrorReportHandler())
         
     # Make sure handler also respects the level
     console_handler.setLevel(root_level)
@@ -120,14 +167,3 @@ def set_log_level(level):
     for logger_name in logging.root.manager.loggerDict:
         logging.getLogger(logger_name).setLevel(level)
 
-
-def get_sse_logger(name):
-    logger = logging.getLogger(name)
-    logger.setLevel(logging.DEBUG)
-    # Remove any existing handlers to prevent duplication
-    for handler in logger.handlers[:]:
-        logger.removeHandler(handler)
-    logger.addHandler(sse_handler)
-    # Prevent this logger from propagating messages to the root logger
-    logger.propagate = False
-    return logger
