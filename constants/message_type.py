@@ -1,6 +1,10 @@
 from enum import Enum
 
 class MessageType(Enum):
+    HEARTBEAT = "heartbeat" 
     PLATFORM_STATE = "platform_states"
-    LOG_MESSAGE = "message"
     INFO = "info"
+    WARNING = 'warning'
+    ERROR = 'error'
+    PROGRESS = 'progress'
+    DEBUG = 'debug'
