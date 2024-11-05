@@ -64,7 +64,7 @@ class BaseScrapStateMachine(ABC):
         self.machine = Machine(
             model=self, states=states, transitions=transitions, initial="idle"
         )
-        log.info('🫡  Starting Mission')
+        log.debug('Starting Mission 🫡')
         self.data_handler = Config().storage
         self.date_range = Config().date_range
         self.driver = Config().chrome_driver
@@ -90,7 +90,7 @@ class BaseScrapStateMachine(ABC):
 
     def on_enter_sending_listings(self, listings: List[JobListing]):
         try:
-            log.info("🛰️  Sending result")
+            log.debug("🛰️  Sending result")
             self.data_handler.store_snapshot(listings)
 
         except Exception as e:

@@ -52,10 +52,12 @@ class Operation:
                 )
 
     def handle_jobstreet(self, platform):
+        self.log.info("Getting things ready for Jobstreet")
         mission = SeleniumMission(get_logger(platform.name), platform)
         mission.start()
 
     def handle_kalibrr(self, platform):
+        self.log.info("Getting things ready for Kalibrr")
         client = KalibrrAPIClient(self.config.storage, self.config.date_range)
         client.retrieve_job_listings()
         

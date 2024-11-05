@@ -55,7 +55,7 @@ class SeleniumMission():
             else:
                 raise ValueError(f"Unsupported scraper type: {scraper_type}")
                 
-            self.logger.info(f'🎯 Initialized {scraper_type.value} scraper')
+            self.logger.debug(f'🎯 Initialized {scraper_type.value} scraper')
             
         except Exception as e:
             self.logger.error(f"❌ Failed to initialize scraper: {str(e)}")
@@ -64,7 +64,7 @@ class SeleniumMission():
 
     def start(self):
         try:
-            self.logger.info('🚀  Launching')
+            self.logger.debug('🚀  Launching')
             self.scrapping_probe.launch()
 
         finally:

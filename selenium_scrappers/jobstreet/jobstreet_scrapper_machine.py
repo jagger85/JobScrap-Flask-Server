@@ -19,8 +19,8 @@ class JobstreetScrapperMachine(BaseScrapStateMachine):
         
         # Set initial state to PROCESSING when starting scraping
         self.state_manager.set_platform_state(Platforms.JOBSTREET, PlatformStates.PROCESSING)
-
         self.driver.get(self.build_jobstreet_url())
+        log.info("Retrieving job listings from Jobstreet, this may take a few minutes…")
 
     def build_jobstreet_url(self) -> str:
         """
@@ -46,7 +46,6 @@ class JobstreetScrapperMachine(BaseScrapStateMachine):
         Retrieves listing listings from Jobstreet.
         """
         try:
-            log.info("Fetching Jobstreet listings")
             navigator = JobstreetNavigator(logger=log, driver=self.driver)
             self.listings = navigator.request_listings()
         except Exception as e:
@@ -56,7 +55,6 @@ class JobstreetScrapperMachine(BaseScrapStateMachine):
 
     def process_job_listings(self) -> List[JobListing]:
         try:
-            log.info("Processing Jobstreet listings")
             processed_listings = []
 
             for listing in self.listings:
@@ -76,6 +74,7 @@ class JobstreetScrapperMachine(BaseScrapStateMachine):
 
             # Set state to FINISHED after successful processing
             self.state_manager.set_platform_state(Platforms.JOBSTREET, PlatformStates.FINISHED)
+            log.info('Finished gathering job listings from Jobstreet')
             return processed_listings
 
         except Exception as e:
@@ -84,9 +83,7 @@ class JobstreetScrapperMachine(BaseScrapStateMachine):
             raise
 
     def process_error(self):
-        error_message = "Error occurred during Jobstreet scraping"
-        log.error(error_message)
-
+        log.error("Error occurred during Jobstreet scraping")
         self.state_manager.set_platform_state(Platforms.JOBSTREET, PlatformStates.ERROR)
 
 

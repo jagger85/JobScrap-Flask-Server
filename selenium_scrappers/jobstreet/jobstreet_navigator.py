@@ -30,7 +30,7 @@ class JobstreetNavigator:
                 
                 # Process each listing
                 for index, listing_id in enumerate(listing_ids, start=1):
-                    log.progress(f"Processing listing {index} of {len(listing_ids)}")
+                    log.debug(f"Processing listing {index} of {len(listing_ids)}")
                     listing_details = self._get_listing_details(listing_id)
                     
                     if listing_details:

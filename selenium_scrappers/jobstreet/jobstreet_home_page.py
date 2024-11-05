@@ -34,7 +34,7 @@ class JobstreetHomePage:
                     # Get listing ID directly from data attribute
                     listing_id = card.get_attribute('data-job-id')
                     if listing_id:
-                        log.progress(f"Extracted listing ID: {listing_id}")
+                        log.debug(f"Extracted listing ID: {listing_id}")
                         listing_ids.append(listing_id)
                     else:
                         log.error("\nCould not find data-job-id attribute")
@@ -42,11 +42,11 @@ class JobstreetHomePage:
                 except NoSuchElementException as e:
                     log.error(f"Error extracting data from card: {str(e)}")
                     continue
-            log.progress_complete("Extracted listings complete")
+            log.debug("Extracted listings complete")
             return listing_ids
             
         except TimeoutException:
-            log.error("Timeout waiting for job cards to load")
+            log.debug("Timeout waiting for job cards to load")
             return []
 
     def go_to_next_page(self):
