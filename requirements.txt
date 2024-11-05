@@ -4,3 +4,4 @@ colorlog
 selenium
 flask
 flask-cors
+flask-jwt-extended
