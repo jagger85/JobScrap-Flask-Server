@@ -4,6 +4,10 @@ from models.JobListing import JobListing
 from typing import List
 from config import Config
 from server.state_manager import StateManager
+from selenium import webdriver
+from selenium.webdriver.chrome.service import Service
+from selenium.webdriver.chrome.options import Options
+import os
 
 states = [
     "idle",
@@ -60,17 +64,30 @@ class BaseScrapStateMachine(ABC):
     def __init__(self, logger):
         global log
         log = logger
+        self.config = Config()
         self.state_manager = StateManager()
         self.machine = Machine(
             model=self, states=states, transitions=transitions, initial="idle"
         )
         log.debug('Starting Mission 🫡')
-        self.data_handler = Config().storage
         self.date_range = Config().date_range
-        self.driver = Config().chrome_driver
-
-
-    # # Every trigger launch one of this methods, eg. self.launch() triggers on_enter_loading() and so on
+        try:
+            # Initialize Chrome driver with project-relative path
+            log.debug("🔧 Initializing Chrome driver")
+            current_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+            chromedriver_path = os.path.join(current_dir, "chromedriver")
+            service = Service(chromedriver_path)
+            options = Options()
+            options.add_argument("--headless=new")
+            self.driver = webdriver.Chrome(service=service, options=options)
+            self.config.chrome_driver = self.driver  # Set reference in config
+                
+        except Exception as e:
+            log.error(f"❌ Failed to initialize scraper: {str(e)}")
+            self.cleanup()
+            raise
+        
+    # Every trigger launch one of this methods, eg. self.launch() triggers on_enter_loading() and so on
 
     def on_enter_loading_listings(self):
         try:
@@ -91,15 +108,25 @@ class BaseScrapStateMachine(ABC):
     def on_enter_sending_listings(self, listings: List[JobListing]):
         try:
             log.debug("🛰️  Sending result")
-            self.data_handler.store_snapshot(listings)
+            self.final_listings = listings  # Store listings in instance variable
 
         except Exception as e:
             log.error(f"Error in sending_listings: {str(e)}")
             self.error_occurred(str(e))
+            self.final_listings = []
 
     def on_enter_error(self, msg):
         log.error(f"❌ error: {msg}")
         pass
+    
+    def start(self):
+        try:
+            self.final_listings = []  # Initialize listings
+            self.launch()
+            return self.final_listings  # Return the collected listings
+
+        finally:
+            self.cleanup()
 
     # # Every scrapper who inherits from this base must implement this methods
 
@@ -115,3 +142,18 @@ class BaseScrapStateMachine(ABC):
     def process_error(self):
         pass
 
+    def cleanup(self):
+        if self.driver:
+            log.debug("🧹 Cleaning up Chrome driver")
+            self.driver.quit()
+            self.driver = None
+            self.config.chrome_driver = None
+            log.debug("✨ Chrome driver cleaned up successfully")
+        else:
+            log.debug("🤷 No Chrome driver to clean up")
+
+    def __aenter__(self):
+        return self
+
+    def __aexit__(self, exc_type, exc_val, exc_tb):
+        self.cleanup()

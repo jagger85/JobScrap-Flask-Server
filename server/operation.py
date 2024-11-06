@@ -1,8 +1,8 @@
 from logger.logger import get_logger, set_log_level
-from selenium_scrappers import SeleniumMission
 from constants.platforms import Platforms
 from constants.date_range import DateRange
 from selenium_scrappers.kalibrr.kalibrr_api_request import KalibrrAPIClient
+from selenium_scrappers.jobstreet.jobstreet_scrapper_machine import JobstreetScrapperMachine as jobstreet_scrapper
 from config import Config
 from data_handler import StorageType
 import logging
@@ -43,7 +43,7 @@ class Operation:
         platform_handlers = {
             Platforms.JOBSTREET: self.handle_jobstreet,
             Platforms.KALIBRR: self.handle_kalibrr,
-            # More platforms here
+            #TODO the other platforms go here platforms here
         }
 
         self.log.debug(f"Configured platforms: {self.config.platforms}")
@@ -71,10 +71,10 @@ class Operation:
 
     def handle_jobstreet(self, platform):
         self.log.info("Getting things ready for Jobstreet")
-        mission = SeleniumMission(self.config.storage, self.config.date_range)
-        results = mission.start()
-        self.log.debug(f"Jobstreet returned {len(results) if results else 0} listings")
-        return results
+        mission = jobstreet_scrapper()
+        listings = mission.start()
+        self.log.debug(f"Jobstreet returned {len(listings) if listings else 0} listings")
+        return listings
 
     def handle_kalibrr(self, platform):
         self.log.info("Getting things ready for Kalibrr")

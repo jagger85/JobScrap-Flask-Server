@@ -8,13 +8,14 @@ from config import Config
 from constants.date_range import DateRange
 from constants.platforms import Platforms
 from constants.platform_states import PlatformStates
+from logger.logger import get_logger
 
 
 class JobstreetScrapperMachine(BaseScrapStateMachine):
-    def __init__(self, logger):
+    def __init__(self):
         global log
-        log = logger
-        super().__init__(logger)
+        log = get_logger("Jobstreet")
+        super().__init__(log)
         
         
         # Set initial state to PROCESSING when starting scraping
@@ -48,15 +49,23 @@ class JobstreetScrapperMachine(BaseScrapStateMachine):
         try:
             navigator = JobstreetNavigator(logger=log, driver=self.driver)
             self.listings = navigator.request_listings()
+            if not self.listings:
+                log.warning("No listings found")
+                return []
+            return self.listings
         except Exception as e:
             log.error(f"Error fetching job listings: {str(e)}")
             self.state_manager.set_platform_state(Platforms.JOBSTREET, PlatformStates.ERROR)
-            raise
+            return []
 
     def process_job_listings(self) -> List[JobListing]:
         try:
-            processed_listings = []
+            if not hasattr(self, 'listings') or not self.listings:
+                log.error("No listings found to process")
+                self.state_manager.set_platform_state(Platforms.JOBSTREET, PlatformStates.ERROR)
+                return []
 
+            processed_listings = []
             for listing in self.listings:
                 processed_listing = JobListing(
                     site=log.name,
