@@ -70,13 +70,12 @@ class KalibrrAPIClient:
                 self.state_manager.set_platform_state(Platforms.KALIBRR, PlatformStates.FINISHED)
                 return listings
             
-            # Store the snapshot
+            # Return the snapshot
             try:
                 self.log.debug("Storing job listings snapshot")
-                self.data_handler.store_snapshot(listings)
                 self.log.info("Finished gathering job listings from Kalibrr")
                 self.state_manager.set_platform_state(Platforms.KALIBRR, PlatformStates.FINISHED)
-                return listings
+                return self.data_handler.return_snapshot(listings)
                 
             except Exception as e:
                 self.log.error(f"Failed to store job listings snapshot: {str(e)}")
