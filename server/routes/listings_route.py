@@ -2,6 +2,7 @@ from flask import Blueprint, request, jsonify
 from constants.date_range import DateRange
 from server.operation import Operation as ops
 from constants.platforms import Platforms
+import json
 
 listings_bp = Blueprint("listings", __name__)
 
@@ -54,15 +55,12 @@ def create_listing():
 
         # Start the operation with enum members
         scrapping_operation = ops(date_range_enum, platform_enums)
-        scrapping_operation.scrape_all_sites()
+        listings = scrapping_operation.scrape_all_sites()
 
-        return jsonify(
-            {
-                "message": "Listing created successfully",
-                "platforms": platforms,
-                "dateRange": date_range_enum.value,
-            }
-        ), 201
+        return jsonify({
+            "message": "Job listings retrieved successfully",
+            "listings": listings  # listings is already a list of dicts, no need to convert
+        }), 201
 
     except Exception as e:
         print("Exception details:", str(e))
