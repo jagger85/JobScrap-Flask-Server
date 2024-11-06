@@ -17,6 +17,9 @@ class Operation:
         self.config.date_range = date_range
         self.config.storage_type = StorageType.JSON
         self.listings = None
+        
+        # Initialize data handler
+        self.data_handler = self.config.storage
 
         set_log_level(logging.DEBUG)
         self.log = get_logger("ScraperOperation")
@@ -57,14 +60,14 @@ class Operation:
                     f"Skipping platform: {scraper_type.name} as it is not enabled in config"
                 )
         
-        # Safe way to check the type of listings
+        # Convert JobListing objects using the data handler
         if self.listings:
             self.log.debug(f"Total listings collected: {len(self.listings)}")
             self.log.debug(f"Type of first listing: {type(self.listings[0])}")
+            return self.data_handler.return_snapshot(self.listings)
         else:
             self.log.warning("No listings were collected from any platform")
-        
-        return self.listings
+            return []
 
     def handle_jobstreet(self, platform):
         self.log.info("Getting things ready for Jobstreet")
@@ -75,8 +78,8 @@ class Operation:
 
     def handle_kalibrr(self, platform):
         self.log.info("Getting things ready for Kalibrr")
-        client = KalibrrAPIClient(self.config.storage, self.config.date_range)
-        return client.retrieve_job_listings()  # Ensure this method returns a list of JobListing objects
+        client = KalibrrAPIClient(date_range=self.config.date_range)
+        return client.retrieve_job_listings()
 
     def handle_indeed(self, platform):
         self.log.warning("Operation Indeed not implemented yet")

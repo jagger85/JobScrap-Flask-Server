@@ -5,16 +5,14 @@ from constants.platforms import Platforms
 from constants.platform_states import PlatformStates
 from models.JobListing import JobListing
 from logger.logger import get_logger
-from data_handler.base_data_handler import BaseDataHandler
 from bs4 import BeautifulSoup
 from server.state_manager import StateManager
 from server.sse_observer import SSEObserver
 
 class KalibrrAPIClient:
-    def __init__(self, data_handler: BaseDataHandler, date_range: DateRange = None):
+    def __init__(self, date_range: DateRange = None):
         self.log = get_logger("Kalibrr")
         self.base_url = "https://www.kalibrr.com/kjs/job_board/search"
-        self.data_handler = data_handler
         self.date_range = date_range
         
         # Initialize state management
@@ -50,7 +48,7 @@ class KalibrrAPIClient:
     def retrieve_job_listings(self) -> list[JobListing]:
         """
         Main method to handle the complete flow of retrieving job listings from Kalibrr
-        and storing them using the data handler.
+        and return a JobListing array.
         
         Returns:
             list[JobListing]: List of job listings matching the criteria.
@@ -75,7 +73,7 @@ class KalibrrAPIClient:
                 self.log.debug("Storing job listings snapshot")
                 self.log.info("Finished gathering job listings from Kalibrr")
                 self.state_manager.set_platform_state(Platforms.KALIBRR, PlatformStates.FINISHED)
-                return self.data_handler.return_snapshot(listings)
+                return listings
                 
             except Exception as e:
                 self.log.error(f"Failed to store job listings snapshot: {str(e)}")
