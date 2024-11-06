@@ -14,5 +14,4 @@ class StorageType(Enum):
     """
 
     JSON = "file"
-    DATABASE = "database"
     CSV = "csv"

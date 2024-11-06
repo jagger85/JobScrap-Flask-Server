@@ -40,4 +40,8 @@ class BaseDataHandler(ABC):
     def get_snapshot_list(self):
         """Retrieve a list of available snapshots."""
         pass
-
+    
+    @abstractmethod
+    def return_snapshot(self,job_listings: list[JobListing]):
+        """Return a snapshot"""
+        pass

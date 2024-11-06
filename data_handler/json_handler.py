@@ -72,3 +72,15 @@ class FileHandler(BaseDataHandler):
     def get_snapshot_list(self):
         log.warning("Method not implemented yet")
         pass
+    
+    def return_snapshot(self, job_listings: list[JobListing]) -> list[dict]:
+        """
+        Convert job listings to a list of dictionaries.
+
+        Args:
+            job_listings (list[JobListing]): List of JobListing objects to convert.
+
+        Returns:
+            list[dict]: List of dictionaries representing job listings.
+        """
+        return [job.to_dict() for job in job_listings]  # Return list of dicts instead of JSON string

@@ -1,6 +1,5 @@
 from data_handler.storage_type import StorageType
 from data_handler.base_data_handler import BaseDataHandler
-from data_handler.database_handler import DatabaseHandler
 from data_handler.json_handler import FileHandler
 from data_handler.csv_handler import CsvHandler
 
@@ -34,8 +33,6 @@ class StorageFactory:
         """
         if storage_type == StorageType.JSON:
             return FileHandler()
-        elif storage_type == StorageType.DATABASE:
-            return DatabaseHandler()
         elif storage_type == StorageType.CSV:
             return CsvHandler()
         else:

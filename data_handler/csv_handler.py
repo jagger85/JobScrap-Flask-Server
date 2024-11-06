@@ -125,3 +125,7 @@ class CsvHandler(BaseDataHandler):
         log.warning("Method get snapshot list not implement yet")
         pass
     
+    def return_snapshot(self,job_listings: list[JobListing]):
+        """Return a snapshot"""
+        log.warning("Method not implemented yet")
+        pass
