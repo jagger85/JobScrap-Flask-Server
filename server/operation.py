@@ -15,7 +15,8 @@ class Operation:
         self.config = Config()
         self.config.platforms = [platform.value for platform in platforms]
         self.config.date_range = date_range
-        self.config.storage_type = StorageType.CSV
+        self.config.storage_type = StorageType.JSON
+        self.listings = None
 
         set_log_level(logging.DEBUG)
         self.log = get_logger("ScraperOperation")
@@ -32,6 +33,9 @@ class Operation:
             self.log.info(f"Initialized {platform.value}")
 
     def scrape_all_sites(self):
+        # Initialize empty list to store all listings
+        self.listings = []
+        
         # Platform-specific scraping handlers
         platform_handlers = {
             Platforms.JOBSTREET: self.handle_jobstreet,
@@ -44,23 +48,35 @@ class Operation:
         for scraper_type in platform_handlers:
             self.log.debug(f"Checking platform: {scraper_type.value}")
             if scraper_type.value in self.config.platforms:
-                platform_handlers[scraper_type](scraper_type)
-                
+                platform_listings = platform_handlers[scraper_type](scraper_type)
+                if platform_listings:
+                    self.log.debug(f"Got {len(platform_listings)} listings from {scraper_type.value}")
+                    self.listings.extend(platform_listings)
             else:
                 self.log.debug(
                     f"Skipping platform: {scraper_type.name} as it is not enabled in config"
                 )
+        
+        # Safe way to check the type of listings
+        if self.listings:
+            self.log.debug(f"Total listings collected: {len(self.listings)}")
+            self.log.debug(f"Type of first listing: {type(self.listings[0])}")
+        else:
+            self.log.warning("No listings were collected from any platform")
+        
+        return self.listings
 
     def handle_jobstreet(self, platform):
         self.log.info("Getting things ready for Jobstreet")
-        mission = SeleniumMission(get_logger(platform.name), platform)
-        mission.start()
+        mission = SeleniumMission(self.config.storage, self.config.date_range)
+        results = mission.start()
+        self.log.debug(f"Jobstreet returned {len(results) if results else 0} listings")
+        return results
 
     def handle_kalibrr(self, platform):
         self.log.info("Getting things ready for Kalibrr")
         client = KalibrrAPIClient(self.config.storage, self.config.date_range)
-        client.retrieve_job_listings()
-        
+        return client.retrieve_job_listings()  # Ensure this method returns a list of JobListing objects
 
     def handle_indeed(self, platform):
         self.log.warning("Operation Indeed not implemented yet")
