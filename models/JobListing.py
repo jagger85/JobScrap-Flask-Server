@@ -25,5 +25,5 @@ class JobListing:
             "position": self.position,
             "salary": self.salary,
             "description": self.description,
-            # Add other fields as necessary
+            "url": self.url
         }
