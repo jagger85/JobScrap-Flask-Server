@@ -13,3 +13,17 @@ class JobListing:
     salary: str
     description: str
     url: str
+
+    def to_dict(self):
+        return {
+            "site": self.site,
+            "listing_date": self.listing_date,
+            "job_title": self.job_title,
+            "company": self.company,
+            "location": self.location,
+            "employment_type": self.employment_type,
+            "position": self.position,
+            "salary": self.salary,
+            "description": self.description,
+            # Add other fields as necessary
+        }
