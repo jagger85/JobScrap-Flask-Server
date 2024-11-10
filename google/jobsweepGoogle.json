@@ -1,0 +1,13 @@
+{
+  "type": "service_account",
+  "project_id": "jobsweep-441107",
+  "private_key_id": "857964b09b42edc32c80673ec1a28a7c2b9cdeb0",
+  "private_key": "-----BEGIN PRIVATE KEY-----\nMIIEvgIBADANBgkqhkiG9w0BAQEFAASCBKgwggSkAgEAAoIBAQDVjytCcSxOqD7Y\nfIx4Chcxp64IIqHgNqiSyds1A8KWFeBjn4mf/IKBh/oL7Vzthc/D6XkdzF/HO4o1\n2gVC9mAxaNSEp2JPW2OofT2i22SQkvcEQbsVgwNp59kW65albfG9FiyG4XZKq45x\n/lHtvDn/kN8VwzJ8BZGJBDi9sm+hxuPLgH14BZ6eVr1274Yp0dGyST2pbVVW79Gl\nrKUb2mutP6KVUVhpVomQAc2QR0/J9u96iSvYC8hUZg4qkjyzTw+MCB/7FeKE64oY\nClUJWxAK2wdLnDpLQOukhoagHJXsPt9+45VZNmpGqT2lmxMhSK797rhyWJKk/trB\neljt0HXZAgMBAAECggEAEfCZ1lYmPhHPXLWCwdM8LU9MFPIe1dRVnyYemGKhWiUK\nkWfdom9OgcXb1Rxql+frowYmBuEsIxMO+lTfKAfFHyVyo9WhUjAHzEfAEaIbPbNg\n1Y5Vglo8A02nDJA8GpfErMkT8r02KBHnEI+oD3/mQeAoQ15fS3CW0BMnFpVqoATr\nP5RKzDPfXXNaiaOu/7Uu5Vgd1oIKzsIwlt6TmdqVR83vyoHU6p5hAypAVDwc3Plm\njtRClRpoYQrxpTNxZ6td+eX+PHGOZwFPhi1rbVPT2chcigEJzZghWIcGt9MPmXHP\n7MxC4q5PoULg4R/7wFBW8IDlQhFsLtkuiG82SMPsAQKBgQDx7rKcnR17GW3b9eYG\njvFA2oiKzKS8UJqVu0AnWAUQdqfuErjugqUOpxjGXxxEjv5jvL2lIL/AKEPuU5h6\nDCi8JiP4EmEREki4zaa6I8ditJ814H9UMS7NNa1zig/AYs7b/Ku2nwUqNhwUr6ue\n2IHrHSjK8hTfrubV364Zw96MAQKBgQDh+h7eoRCCXTqsyPTeiLRlyFHo5T2TvSLg\nNAyBR2oBOTisDjkvaYlQwWhqR0aaKVpApRJARN9ftIUvFEamJiViGNwNhfA2LnCM\ntxpYYmxh0k8fs51LWXWOXl6g7IY23fAgltyEnmk+vG07MEOu4jvelQbIeKXBg8wa\nCLxrtj/J2QKBgQDtJe79J+GLFi0jDRIS4bFIwi5P6DOeyGAPX8KODnDAZ59K9h1C\n5ttG1rKpWPfLmGNyfsNjBwwPHykfh+AR2rNfYv+lHtb5NfQE+slw8rtyXN0noc0O\nSTu4OeKxO+cezXw6FZ54X75fVzUFbgGLrm0De8zNyqh9buOlSCJP7TjMAQKBgCQK\n9eOCgxSX9CTdBJl96nAVjGL+NV0cHLTv+FKiZlj9nHls51gVmC5GOvZAmhU6pUeM\nTKXtlkc4jsmcjUww52OHHYoWo+Kwc4kuJ0iToj/UAITI7Dy5bxOfH67BKwMTURqR\nlWidr6GvAikfoJwDP5NX57YP8Dg2YlaAsDTp47C5AoGBANdyCNwKpgXqofs/w79F\nnwTu00sn4OQOr03QM9FG1jsbTUuBe1XgpmxMNeEGcE0cntRzTkJhD9smaOcoPZ0T\nt02dt4fKLOPrnIK7G6zrLtPnfnA+WZac1O+vSHlj0x9AsweYkUuQOdFnAYy1CL/f\nzyC8gUOIfsJfKx4boq9Zlboo\n-----END PRIVATE KEY-----\n",
+  "client_email": "jobsweep-service-account-856@jobsweep-441107.iam.gserviceaccount.com",
+  "client_id": "114867139242123953775",
+  "auth_uri": "https://accounts.google.com/o/oauth2/auth",
+  "token_uri": "https://oauth2.googleapis.com/token",
+  "auth_provider_x509_cert_url": "https://www.googleapis.com/oauth2/v1/certs",
+  "client_x509_cert_url": "https://www.googleapis.com/robot/v1/metadata/x509/jobsweep-service-account-856%40jobsweep-441107.iam.gserviceaccount.com",
+  "universe_domain": "googleapis.com"
+}
