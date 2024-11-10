@@ -2,7 +2,7 @@ from transitions import Machine
 from abc import ABC, abstractmethod
 from models.JobListing import JobListing
 from typing import List
-from config import Config
+from config.config import Config
 from server.state_manager import StateManager
 from selenium import webdriver
 from selenium.webdriver.chrome.service import Service
@@ -108,7 +108,7 @@ class BaseScrapStateMachine(ABC):
     def on_enter_sending_listings(self, listings: List[JobListing]):
         try:
             log.debug("🛰️  Sending result")
-            self.final_listings = listings  # Store listings in instance variable
+            self.final_listings = listings  
 
         except Exception as e:
             log.error(f"Error in sending_listings: {str(e)}")
@@ -121,9 +121,9 @@ class BaseScrapStateMachine(ABC):
     
     def start(self):
         try:
-            self.final_listings = []  # Initialize listings
+            self.final_listings = []  
             self.launch()
-            return self.final_listings  # Return the collected listings
+            return self.final_listings 
 
         finally:
             self.cleanup()
