@@ -27,7 +27,7 @@ CORS(app, resources={
 # Configuration
 app.config.update(
     HOST=os.getenv('BACKEND_HOST', '0.0.0.0'),
-    PORT=int(os.getenv('PORT', 8000))
+    PORT=int(os.getenv('PORT', 10000))
 )
 
 # Initialize JWT
@@ -52,3 +52,11 @@ def log_routes():
     log.debug("Registered routes:")
     for rule in app.url_map.iter_rules():
         log.debug(f"{rule.endpoint}: {rule.rule} [{', '.join(rule.methods)}]")
+
+# Add this at the bottom of the file
+if __name__ == '__main__':
+    log_routes()
+    app.run(
+        host=app.config['HOST'],
+        port=app.config['PORT']
+    )
