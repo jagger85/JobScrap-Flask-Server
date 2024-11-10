@@ -12,12 +12,6 @@ log = get_logger('Server')
 set_log_level(logging.DEBUG)
 load_dotenv()
 
-# Validate environment variables
-required_env_vars = ['BACKEND_HOST', 'BACKEND_PORT']
-for var in required_env_vars:
-    if not os.getenv(var):
-        raise EnvironmentError(f"Missing required environment variable: {var}")
-
 app = Flask(__name__)
 
 # Configure CORS
@@ -32,8 +26,8 @@ CORS(app, resources={
 
 # Configuration
 app.config.update(
-    HOST=os.getenv('BACKEND_HOST'),
-    PORT=int(os.getenv('BACKEND_PORT'))
+    HOST=os.getenv('BACKEND_HOST', '0.0.0.0'),
+    PORT=int(os.getenv('PORT', 8000))
 )
 
 # Initialize JWT
@@ -58,19 +52,3 @@ def log_routes():
     log.debug("Registered routes:")
     for rule in app.url_map.iter_rules():
         log.debug(f"{rule.endpoint}: {rule.rule} [{', '.join(rule.methods)}]")
-
-if __name__ == '__main__':
-    try:
-        log.debug("=== Starting Flask Server ===")
-        log.debug(f"Host: {app.config['HOST']}")
-        log.debug(f"Port: {app.config['PORT']}")
-        
-        app.run(
-            host=app.config['HOST'],
-            port=app.config['PORT'],
-            debug=True
-        )
-    except Exception as e:
-        log.error(f"Failed to start server: {str(e)}")
-        log.exception("Detailed traceback:")
-        raise
