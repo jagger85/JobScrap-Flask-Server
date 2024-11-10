@@ -2,6 +2,7 @@ import logging
 from colorlog import ColoredFormatter
 import sys
 from queue import Queue
+from typing import Optional
 
 # Custom log level
 PROGRESS = 25  # Between INFO (20) and WARNING (30)
@@ -42,7 +43,7 @@ colored_formatter = ColoredFormatter(
 )
 
 # Add a plain formatter for SSE messages
-SSE_FORMAT = "%(message)s"  # Just the message without colors or timestamps
+SSE_FORMAT = "%(message)s" 
 sse_formatter = logging.Formatter(SSE_FORMAT)
 
 class SSELoggingHandler(logging.Handler):
@@ -52,7 +53,6 @@ class SSELoggingHandler(logging.Handler):
 
     def emit(self, record):
         try:
-            # Map logging levels to message types
             level_to_type = {
                 logging.DEBUG: "debug",
                 logging.INFO: "info",
@@ -93,8 +93,6 @@ class ProgressStreamHandler(logging.StreamHandler):
         try:
             msg = self.format(record)
             stream = self.stream
-            # Also send to SSE handler
-            sse_handler.emit(record)
             
             if record.levelno == PROGRESS:
                 # Dynamically clear line based on message length
@@ -122,6 +120,14 @@ class ErrorReportHandler(logging.Handler):
         # TODO send the error to the report object
         pass
 
+_sse_handler: Optional[SSELoggingHandler] = None
+
+def get_sse_handler() -> SSELoggingHandler:
+    global _sse_handler
+    if _sse_handler is None:
+        _sse_handler = SSELoggingHandler()
+    return _sse_handler
+
 def get_logger(name):
     """
     Get or create a logger with consistent configuration.
@@ -141,7 +147,7 @@ def get_logger(name):
     # Ensure single handler by removing any existing ones
     if not logger.handlers:
         logger.addHandler(console_handler)
-        logger.addHandler(sse_handler)
+        logger.addHandler(get_sse_handler())
         logger.addHandler(ErrorReportHandler())
         
     # Make sure handler also respects the level
