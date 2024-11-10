@@ -41,7 +41,7 @@ class KalibrrAPIClient:
             
         return start_date, end_date
 
-    def retrieve_job_listings(self) -> list[JobListing]:
+    def start(self) -> list[JobListing]:
         """
         Main method to handle the complete flow of retrieving job listings from Kalibrr
         and return a JobListing array.
