@@ -202,3 +202,39 @@ class Config:
     @jobstreet_url.setter
     def jobstreet_url(self, url: str):
         self._jobstreet_url = url
+
+    # Add these after other properties
+    @property
+    def listings(self):
+        """
+        Get the current job listings from the latest scraping operation.
+        
+        Returns:
+            list: List of job listings or None if no scraping has been performed
+        """
+        if not hasattr(self, '_listings'):
+            self._listings = None
+        return self._listings
+
+    @listings.setter
+    def listings(self, value):
+        self._listings = value
+
+    def reset_to_defaults(self):
+        """
+        Reset all configuration values to their default state.
+        Called after completing an operation to prepare for the next one.
+        """
+        # Initialize state management using the same pattern as Operation class
+        
+        # Reset platform states and notify clients
+        
+        # Reset all other values
+        self._chrome_driver = None
+        self._date_range = DateRange.PAST_24_HOURS
+        self._keywords = []
+        self._storage_type = StorageType.JSON
+        self._storage = StorageFactory.get_storage_handler(self._storage_type)
+        self._user_id = None
+        self._platforms = []
+        self._listings = None
