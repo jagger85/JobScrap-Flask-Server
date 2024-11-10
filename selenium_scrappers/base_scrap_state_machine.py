@@ -74,10 +74,12 @@ class BaseScrapStateMachine(ABC):
         try:
             # Initialize Chrome driver with project-relative path
             log.debug("🔧 Initializing Chrome driver")
-            chromedriver_path = "chromedriver"
-            service = Service(chromedriver_path)
+            driver_path = os.path.join(os.path.dirname(__file__), 'chromedriver')
+            service = Service(driver_path)
             options = Options()
             options.add_argument("--headless=new")
+            options.add_argument("--no-sandbox")
+            options.add_argument("--disable-dev-shm-usage")
             self.driver = webdriver.Chrome(service=service, options=options)
             self.config.chrome_driver = self.driver  # Set reference in config
                 
