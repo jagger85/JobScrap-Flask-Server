@@ -2,11 +2,8 @@ from flask import Flask
 from flask_cors import CORS
 import os
 from dotenv import load_dotenv
-from ..logger import get_logger, set_log_level
-from routes.sse_route import sse_bp
-from routes.listings_route import listings_bp
-from routes.auth_route import logging_bp
-from routes.fetch_route import fetch_listings_bp
+from logger import get_logger, set_log_level
+from server import sse_bp,listings_bp,logging_bp,fetch_listings_bp
 import logging
 from werkzeug.serving import WSGIRequestHandler, BaseWSGIServer
 from config.jwt_config import init_jwt
