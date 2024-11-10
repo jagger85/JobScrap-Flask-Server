@@ -25,7 +25,9 @@ CORS(app, resources={
 })
 
 # Configuration
+ENV = os.getenv('FLASK_ENV', 'development')
 app.config.update(
+    ENV=ENV,
     HOST=os.getenv('BACKEND_HOST', '0.0.0.0'),
     PORT=int(os.getenv('PORT', 10000))
 )
@@ -55,8 +57,12 @@ def log_routes():
 
 # Add this at the bottom of the file
 if __name__ == '__main__':
-    log_routes()
-    app.run(
-        host=app.config['HOST'],
-        port=app.config['PORT']
-    )
+    if ENV == 'development':
+        print("⚠️  Running in development mode. Do not use this server in production.")
+        app.run(
+            host=app.config['HOST'],
+            port=app.config['PORT'],
+            debug=True
+        )
+    else:
+        print("🚀 Production mode detected. Please use Gunicorn to run this application.")
