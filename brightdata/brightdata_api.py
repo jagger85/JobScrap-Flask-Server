@@ -39,7 +39,6 @@ class BrightDataClient:
 
         global BASE_URL
         BASE_URL = "https://api.brightdata.com/datasets/v3"
-
         self.snapshot_id = None
         self.headers = {
             "Authorization": f"Bearer {API_KEY}",

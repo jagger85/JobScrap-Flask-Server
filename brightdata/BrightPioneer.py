@@ -1,9 +1,15 @@
 from transitions import Machine
 from brightdata.brightdata_api import BrightDataClient
 from models import LinkedInParams, IndeedParams
-from models import JobListing
+from models.JobListing import JobListing
 import time
 from typing import Union
+from config.config import Config
+from logger.logger import get_logger
+from constants.platforms import Platforms
+from constants.platform_states import PlatformStates
+from server.state_manager import StateManager
+from datetime import datetime
 
 # Define the possible states
 states = [
@@ -31,18 +37,31 @@ transitions = [
 
 
 class BrightPioneer:
-    def __init__(self, logger, params: Union[LinkedInParams, IndeedParams], data_manager):
+    def __init__(self,  params: Union[LinkedInParams, IndeedParams]):
+        self.state_manager = StateManager()
+
+        global platform_name
+        platform_name = params.get_platform_name()
+        
+        self.params = params
+        global platform
+        if self.params.__class__.__name__ == 'IndeedParams':
+            platform = Platforms.INDEED
+        elif self.params.__class__.__name__ == 'LinkedInParams':
+            platform = Platforms.LINKEDIN
+
         global log
+        log = get_logger(platform_name)
+
         global client
+        client = BrightDataClient(log)
 
-        client = BrightDataClient(logger)
-        log = logger
-
+        self.config = Config()
         self.waiting_time = 60
         self.waiting_retries = 6
         self.waited_times = 0
-        self.params = params
-        self.data_manager = data_manager
+ 
+        self.data_manager = self.config.storage
         self.listings = []
 
         self.machine = Machine(
@@ -72,15 +91,12 @@ class BrightPioneer:
             self.error_occurred(f"Exception during dataset request: {str(e)}")
 
     def on_enter_waiting_data(self):
-        max_wait_time = 1000  # 4 minutes in seconds
-        check_interval = 60  # Check every 30 seconds
-        elapsed_time = 0
-        log.info("Waiting for data this can take several minutes")
+        check_interval = 60  # Check every 60 seconds
+        waiting_minutes = 0
+        log.info(f"Waiting for {platform_name} listings this can take several minutes")
 
-        while elapsed_time < max_wait_time:
-            log.info(f"Elapsed time: {elapsed_time} seconds")
+        while True:
             status = client.check_snapshot_status()
-
             log.debug(status.get("status"))
 
             if status["status"] == "ready":
@@ -93,28 +109,28 @@ class BrightPioneer:
                 return
 
             elif status["status"] == "running":
-                log.debug("Still processing")
+                waiting_minutes += check_interval / 60
+                log.info(f"Still processing {platform_name}... Waiting time: {int(waiting_minutes)} minutes")
 
             time.sleep(check_interval)
-            elapsed_time += check_interval
-
-        self.error_occurred("Data retrieval timed out after 1000 seconds")
 
     def on_enter_processing_data(self):
-        log.info("Processing data...")
+        log.debug("Processing data...")
         try:
             result = client.retrieve_snapshot()
             if result["status"] == "success":
-                log.info("Dataset retrieved successfully")
+                log.debug("Dataset retrieved successfully")
 
                 snapshot = result.get("snapshot", [])
-                log.info(f"Retrieved {len(snapshot)} items from the dataset")
-                if isinstance(self.params, IndeedParams):
+
+                log.debug(f"Retrieved {len(snapshot)} items from the dataset")
+
+                if self.params.__class__.__name__ == 'IndeedParams':
                     processed_listings = self.process_indeed_snapshot(snapshot)
-                    # Implement a send result
-                elif isinstance(self.params, LinkedInParams):
+                    self.send_result(processed_listings)
+                elif self.params.__class__.__name__ == 'LinkedInParams':
                     processed_listings = self.process_linkedIn_snapshot(snapshot)
-                    # Implement send result
+                    self.send_result(processed_listings)
             else:
                 error_message = result.get("message", "Unknown error occurred")
                 log.error(f"Failed to retrieve dataset: {error_message}")
@@ -124,26 +140,22 @@ class BrightPioneer:
             self.error_occurred(f"Exception during data processing: {str(e)}")
 
     def on_enter_sending_result(self, processed_data):
-        #TODO implement sending to datamanager
-        log.info("🎉🎉🎉🎉 we reached the final stage!")
-
-        self.state_result =  "✅ Exploration mission accomplished"
+        log.debug("🎉🎉🎉🎉 we reached the final stage!")
+        self.final_listings = processed_data
 
     def on_enter_error(self, msg):
+        self.state_manager.set_platform_state(platform, PlatformStates.ERROR)
         log.error(msg)
-        self.state_result = "🥲 Something bad happened"
-
-
 
     def process_linkedIn_snapshot(self, snapshot):
-        log.info("Processing LinkedIn listings")
+        log.debug("Processing LinkedIn listings")
 
         processed_listings = []
 
         for listing in snapshot:
             processed_listing = JobListing(
                 site=self.params.get_platform_name(),
-                listing_date=listing.get('job_posted_date'),
+                listing_date=self.parse_date(listing.get('job_posted_date')),
                 job_title=listing.get('job_title'),
                 company=listing.get('company_name'),
                 location=listing.get('job_location'),
@@ -155,19 +167,30 @@ class BrightPioneer:
             )
             processed_listings.append(processed_listing)
 
-        log.info(f"Processed {len(processed_listings)} LinkedIn listings")
+        log.info(f"Received {len(processed_listings)} LinkedIn listings")
         self.send_result(processed_listings)
         return processed_listings
 
+    def parse_date(self, date_str):
+        try:
+            # Convert ISO format to MM-DD-YY
+            if isinstance(date_str, str):
+                parsed_date = datetime.strptime(date_str, '%Y-%m-%dT%H:%M:%S.%fZ')
+                return parsed_date.strftime('%m-%d-%y')
+            return None
+        except Exception as e:
+            log.error(f"Error parsing date: {e}")
+            return None
+
     def process_indeed_snapshot(self, snapshot):
-        log.info("Processing Indeed listings")
+        log.debug("Processing Indeed listings")
 
         processed_listings = []
 
         for listing in snapshot:
             processed_listing = JobListing(
                 site=self.params.get_platform_name(),
-                listing_date=listing.get('date_posted_parsed'),
+                listing_date=self.parse_date(listing.get('date_posted_parsed')),
                 job_title=listing.get('job_title'),
                 company=listing.get('company_name'),
                 location=listing.get('location'),
@@ -179,10 +202,21 @@ class BrightPioneer:
             )
             processed_listings.append(processed_listing)
 
-        log.info(f"Processed {len(processed_listings)} Indeed listings")
+        log.info(f"Received {len(processed_listings)} Indeed listings")
         self.send_result(processed_listings)
         return processed_listings
 
+    def start(self):
+        try:
+            self.final_listings = []
+            self.launch()
+            return self.final_listings
+        
+        except Exception as e:
+            log.debug(f'An error ocurred {e}')
+            log.error('An error has ocurred while processing')
+            self.state_manager.set_platform_state(platform, PlatformStates.ERROR)
+            self.final_listings = []
 
 
 if __name__ == "__main__":
