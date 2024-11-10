@@ -1,12 +1,15 @@
 from flask import Blueprint, Response, stream_with_context
-from logger.logger import get_logger
+from flask_jwt_extended import jwt_required
+from logger.logger import get_logger, get_sse_handler
 from constants.message_type import MessageType
+from server.state_manager import StateManager
 import json
 import time
 
 sse_bp = Blueprint('sse', __name__)
 
 @sse_bp.route('/jobsweep-sse')
+@jwt_required()
 def sse_stream():
     """Stream server-sent events for job updates.
 
@@ -18,12 +21,16 @@ def sse_stream():
         Response: A streaming response with content type 'text/event-stream'.
     """
     def event_stream():
-        # Get the logger and its SSE handler
-        logger = get_logger('sse_stream')
-        sse_handler = logger.handlers[1]  # SSE handler is the second handler
+        # Get the singleton SSE handler
+        sse_handler = get_sse_handler()
+        state_manager = StateManager()
         
         # Send initial connection message
         yield f"data: {json.dumps({'type': MessageType.INFO.value, 'message': 'Connection established'})}\n\n"
+        
+        # Send current platform states
+        platform_states = state_manager.get_all_states()
+        yield f"data: {json.dumps({'type': MessageType.PLATFORM_STATE.value, 'platforms': {k.value: v.value for k, v in platform_states.items()}})}\n\n"
         
         try:
             while True:
@@ -36,8 +43,10 @@ def sse_stream():
                     # Heartbeat message using the defined enum
                     yield f"data: {json.dumps({'type': MessageType.HEARTBEAT.value, 'heartbeat': True})}\n\n"
                     time.sleep(3)
+                    pass
                     
         except GeneratorExit:
+            logger = get_logger('sse_stream')
             logger.debug("SSE connection closed")
             pass
 
