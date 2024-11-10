@@ -74,8 +74,7 @@ class BaseScrapStateMachine(ABC):
         try:
             # Initialize Chrome driver with project-relative path
             log.debug("🔧 Initializing Chrome driver")
-            current_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-            chromedriver_path = os.path.join(current_dir, "chromedriver")
+            chromedriver_path = "./chromedriver"
             service = Service(chromedriver_path)
             options = Options()
             options.add_argument("--headless=new")
