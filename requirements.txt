@@ -5,3 +5,4 @@ selenium
 flask
 flask-cors
 flask-jwt-extended
+gunicorn
