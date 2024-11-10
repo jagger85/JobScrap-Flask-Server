@@ -37,30 +37,59 @@ class Operation:
             self.state_manager.set_platform_state(platform, PlatformStates.WAITING)
             self.log.info(f"Initialized {platform.value}")
 
+        # Define platform handlers mapping only for selected platforms
+        self.platform_handlers = {}
+        for platform in self.platforms:
+            if platform == Platforms.JOBSTREET:
+                self.platform_handlers[platform] = (jobstreet_scrapper, None)
+            elif platform == Platforms.KALIBRR:
+                self.platform_handlers[platform] = (KalibrrAPIClient, {'date_range': self.config.date_range})
+            elif platform == Platforms.LINKEDIN:
+                self.platform_handlers[platform] = (BrightPioneer, {'params': LinkedInParams(date_range=self.config.date_range)})
+            elif platform == Platforms.INDEED:
+                self.platform_handlers[platform] = (BrightPioneer, {'params': IndeedParams(date_range=self.config.date_range)})
+            elif platform == Platforms.GOOGLE:
+                self.platform_handlers[platform] = None
+
+    def _handle_platform(self, platform: Platforms) -> list:
+        """Generic platform handler that processes any supported platform"""
+        self.log.info(f"Starting to collect jobs from {platform.value}")
+        self.state_manager.set_platform_state(platform, PlatformStates.PROCESSING)
+        
+        handler_info = self.platform_handlers.get(platform)
+        if not handler_info:
+            self.log.info(f"{platform.value} collection is not available at the moment")
+            self.state_manager.set_platform_state(platform, PlatformStates.ERROR)
+            return []
+
+        handler_class, kwargs = handler_info
+        try:
+            scraper = handler_class(**kwargs) if kwargs else handler_class()
+            listings = scraper.start()
+            
+            if listings:
+                self.log.info(f"Successfully collected {len(listings)} jobs from {platform.value}")
+            else:
+                self.log.info(f"No jobs found on {platform.value} for your search criteria")
+                
+            self.state_manager.set_platform_state(platform, PlatformStates.FINISHED)
+            return listings
+            
+        except Exception as e:
+            self.log.error(f"Error processing {platform.value}: {str(e)}")
+            self.state_manager.set_platform_state(platform, PlatformStates.ERROR)
+            return []
+
     def scrape_all_sites(self):
         self.listings = []
         self.log.info("Starting to collect job listings from all selected platforms...")
         
-        platform_handlers = {
-            Platforms.JOBSTREET: self.handle_jobstreet,
-            Platforms.KALIBRR: self.handle_kalibrr,
-            Platforms.LINKEDIN: self.handle_linkedIn,
-            Platforms.INDEED: self.handle_indeed,
-            Platforms.GOOGLE: self.handle_google
-        }
-
-        self.log.debug(f"Configured platforms: {self.config.platforms}")
-
-        for scraper_type in platform_handlers:
-            self.log.debug(f"Checking platform: {scraper_type.value}")
-            if scraper_type.value in self.config.platforms:
-                platform_listings = platform_handlers[scraper_type](scraper_type)
+        for platform in self.platforms:
+            if platform.value in self.config.platforms:
+                platform_listings = self._handle_platform(platform)
                 if platform_listings:
-                    self.log.info(f"Got {len(platform_listings)} listings from {scraper_type.value}")
                     self.listings.extend(platform_listings)
-            else:
-                pass
-        
+
         # Convert JobListing objects using the data handler
         if self.listings:
             self.log.info(f"Successfully collected {len(self.listings)} job listings in total")
@@ -72,56 +101,6 @@ class Operation:
             self.log.info("No job listings were found. Please try adjusting your search criteria")
             self.config.listings = []
             return []
-
-    def handle_jobstreet(self, platform):
-        self.log.info("Starting to collect jobs from Jobstreet")
-        self.state_manager.set_platform_state(Platforms.JOBSTREET, PlatformStates.PROCESSING)
-        mission = jobstreet_scrapper()
-        listings = mission.start()
-        if listings:
-            self.log.info(f"Successfully collected {len(listings)} jobs from Jobstreet")
-            self.state_manager.set_platform_state(Platforms.JOBSTREET, PlatformStates.FINISHED)
-        else:
-            self.log.info("No jobs found on Jobstreet for your search criteria")
-            self.state_manager.set_platform_state(Platforms.JOBSTREET, PlatformStates.FINISHED)
-
-        return listings
-
-    def handle_kalibrr(self, platform):
-        self.log.info("Starting to collect jobs from Kalibrr")
-        self.state_manager.set_platform_state(Platforms.KALIBRR, PlatformStates.PROCESSING)
-        client = KalibrrAPIClient(date_range=self.config.date_range)
-        listings = client.retrieve_job_listings()
-        if listings:
-            self.log.info(f"Successfully collected {len(listings)} jobs from Kalibrr")
-            self.state_manager.set_platform_state(Platforms.KALIBRR, PlatformStates.FINISHED)
-        else:
-            self.log.info("No jobs found on Kalibrr for your search criteria")
-            self.state_manager.set_platform_state(Platforms.KALIBRR, PlatformStates.FINISHED)
-
-        return listings
-
-    def handle_indeed(self, platform):
-        self.log.info("Starting to collect jobs from Indeed")
-        self.state_manager.set_platform_state(Platforms.INDEED, PlatformStates.PROCESSING)
-        params = IndeedParams(date_range=self.config.date_range)
-        #TODO implement indeed
-        self.state_manager.set_platform_state(Platforms.INDEED, PlatformStates.FINISHED)
-
-    def handle_linkedIn(self, platform):
-        self.log.info("Starting to collect jobs from LinkedIn")
-        self.state_manager.set_platform_state(Platforms.LINKEDIN, PlatformStates.PROCESSING)
-        #TODO implement linkedIn
-        params = LinkedInParams(date_range=self.config.date_range)
-
-        self.state_manager.set_platform_state(Platforms.LINKEDIN, PlatformStates.FINISHED)
-
-
-
-
-    def handle_google(self, platform):
-        self.log.info("Google Jobs collection is not available at the moment")
-        self.state_manager.set_platform_state(Platforms.GOOGLE, PlatformStates.ERROR)
 
     def get_listings(self):
         return self.listings
