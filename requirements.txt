@@ -5,6 +5,6 @@ selenium
 flask
 flask-cors
 flask-jwt-extended
-gunicorn
+gunicorn>=20.1.0
 transitions
 beautifulsoup4

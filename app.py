@@ -28,7 +28,7 @@ ENV = os.getenv('FLASK_ENV', 'development')
 app.config.update(
     ENV=ENV,
     HOST=os.getenv('BACKEND_HOST', '0.0.0.0'),
-    PORT=int(os.getenv('PORT', 10000))
+    PORT=int(os.getenv('PORT', 10001))
 )
 
 # Initialize JWT
