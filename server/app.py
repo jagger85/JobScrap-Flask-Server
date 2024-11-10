@@ -2,7 +2,7 @@ from flask import Flask
 from flask_cors import CORS
 import os
 from dotenv import load_dotenv
-from logger import get_logger, set_log_level
+from ..logger import get_logger, set_log_level
 from routes.sse_route import sse_bp
 from routes.listings_route import listings_bp
 from routes.auth_route import logging_bp
