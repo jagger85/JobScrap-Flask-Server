@@ -5,8 +5,11 @@ from dotenv import load_dotenv
 from logger.logger import get_logger, set_log_level
 from routes.sse_route import sse_bp
 from routes.listings_route import listings_bp
+from routes.auth_route import logging_bp
+from routes.fetch_route import fetch_listings_bp
 import logging
 from werkzeug.serving import WSGIRequestHandler, BaseWSGIServer
+from config.jwt_config import init_jwt
 
 log = get_logger('Server')
 set_log_level(logging.DEBUG)
@@ -36,9 +39,14 @@ app.config.update(
     PORT=int(os.getenv('BACKEND_PORT'))
 )
 
+# Initialize JWT
+init_jwt(app)
+
 # Register Blueprints
 app.register_blueprint(sse_bp)
 app.register_blueprint(listings_bp)
+app.register_blueprint(logging_bp)
+app.register_blueprint(fetch_listings_bp)
 
 # Custom request handler for better error handling
 class CustomRequestHandler(WSGIRequestHandler):
