@@ -1,0 +1,104 @@
+{
+    "jobListing": {
+        "normalJobCard": {
+            "type": "xpath",
+            "locator": "//article[@data-automation='normalJob']",
+            "description": "Container for each job listing card in search results",
+            "attributes": {
+                "jobId": "data-job-id"
+            }
+        },
+        "jobTitle": {
+            "type": "xpath",
+            "locator": "//a[@data-automation='jobTitle']",
+            "description": "Job position title link in listing"
+        },
+        "jobCompany": {
+            "type": "xpath",
+            "locator": "//a[@data-automation='jobCompany']",
+            "description": "Company name link in listing"
+        },
+        "jobLocation": {
+            "type": "xpath",
+            "locator": "//span[@data-automation='jobCardLocation']",
+            "description": "Location information in job card"
+        },
+        "jobSalary": {
+            "type": "xpath",
+            "locator": "//span[@data-automation='jobSalary']",
+            "description": "Salary range information"
+        },
+        "jobShortDescription": {
+            "type": "xpath",
+            "locator": "//span[@data-automation='jobShortDescription']",
+            "description": "Brief job description preview in card"
+        },
+        "jobListingDate": {
+            "type": "xpath",
+            "locator": "//span[@data-automation='jobListingDate']",
+            "description": "When the job was posted"
+        },
+        "jobLinkOverlay": {
+            "type": "xpath",
+            "locator": "//a[@data-automation='job-list-item-link-overlay']",
+            "description": "Clickable link area for the entire job card"
+        }
+    },
+    "jobDetails": {
+        "container": {
+            "type": "xpath",
+            "locator": "//div[@data-automation='jobDetailsPage']",
+            "description": "Main container for job details page"
+        },
+        "title": {
+            "type": "xpath",
+            "locator": "//h1[@data-automation='job-detail-title']",
+            "description": "Job title in details page"
+        },
+        "company": {
+            "type": "xpath",
+            "locator": "//span[@data-automation='advertiser-name']",
+            "description": "Company name in details page"
+        },
+        "location": {
+            "type": "xpath",
+            "locator": "//span[@data-automation='job-detail-location']",
+            "description": "Location in details page"
+        },
+        "workType": {
+            "type": "xpath",
+            "locator": "//span[@data-automation='job-detail-work-type']",
+            "description": "Work type in details page"
+        },
+        "description": {
+            "type": "xpath",
+            "locator": "//div[@data-automation='jobAdDetails']",
+            "description": "Full job description"
+        },
+        "salary": {
+            "type": "xpath",
+            "locator": "//span[@data-automation='job-detail-salary']",
+            "description": "Salary information"
+        }
+    },
+    "pagination": {
+        "nextButton": {
+            "type": "xpath",
+            "locator": "//a[contains(@rel, 'nofollow next') and contains(@aria-label, 'Next') and not(contains(@aria-hidden, 'true'))]",
+            "description": "Next page button in search results"
+        }
+    },
+    "relativePaths": {
+        "note": "Use these with a parent element for better scoping",
+        "jobCardDetails": {
+            "type": "xpath",
+            "locator": ".//span[@data-automation='jobCardLocation']",
+            "description": "Use with job card as parent element"
+        },
+        "jobCardSalary": {
+            "type": "xpath",
+            "locator": ".//span[@data-automation='jobSalary']",
+            "description": "Use with job card as parent element"
+        }
+    }
+}
