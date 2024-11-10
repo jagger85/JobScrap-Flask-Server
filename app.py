@@ -11,6 +11,10 @@ log = get_logger('Server')
 set_log_level(logging.DEBUG)
 load_dotenv()
 
+# Force production mode when on Render
+ENV = 'production' if os.getenv('RENDER') else os.getenv('FLASK_ENV', 'development')
+DEBUG = False  # Explicitly disable debug mode
+
 app = Flask(__name__)
 
 # Configure CORS
@@ -24,11 +28,11 @@ CORS(app, resources={
 })
 
 # Configuration
-ENV = os.getenv('FLASK_ENV', 'development')
 app.config.update(
     ENV=ENV,
+    DEBUG=DEBUG,
     HOST=os.getenv('BACKEND_HOST', '0.0.0.0'),
-    PORT=int(os.getenv('PORT', 10001))
+    PORT=int(os.getenv('PORT', 10000))
 )
 
 # Initialize JWT
@@ -48,8 +52,8 @@ def log_routes():
 
 # Add this at the bottom of the file
 if __name__ == '__main__':
+    # This block should never execute on Render
     if ENV == 'development':
-        print("⚠️  Running in development mode. Do not use this server in production.")
         app.run(
             host=app.config['HOST'],
             port=app.config['PORT'],
@@ -57,3 +61,4 @@ if __name__ == '__main__':
         )
     else:
         print("🚀 Production mode detected. Please use Gunicorn to run this application.")
+        raise RuntimeError("Use gunicorn to run in production")
