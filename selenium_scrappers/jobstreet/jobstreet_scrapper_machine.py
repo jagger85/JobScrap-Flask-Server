@@ -4,7 +4,7 @@ from typing import List
 from models.JobListing import JobListing
 from datetime import datetime, timedelta
 import re
-from config import Config
+from config.config import Config
 from constants.date_range import DateRange
 from constants.platforms import Platforms
 from constants.platform_states import PlatformStates
@@ -19,7 +19,6 @@ class JobstreetScrapperMachine(BaseScrapStateMachine):
         
         
         # Set initial state to PROCESSING when starting scraping
-        self.state_manager.set_platform_state(Platforms.JOBSTREET, PlatformStates.PROCESSING)
         self.driver.get(self.build_jobstreet_url())
         log.info("Retrieving job listings from Jobstreet, this may take a few minutes…")
 
@@ -82,7 +81,6 @@ class JobstreetScrapperMachine(BaseScrapStateMachine):
                 processed_listings.append(processed_listing)
 
             # Set state to FINISHED after successful processing
-            self.state_manager.set_platform_state(Platforms.JOBSTREET, PlatformStates.FINISHED)
             log.info('Finished gathering job listings from Jobstreet')
             return processed_listings
 

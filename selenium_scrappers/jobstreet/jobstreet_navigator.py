@@ -67,7 +67,7 @@ class JobstreetNavigator:
                 self.page = new_url
                 log.debug(f"Navigated to page {next_page}")
             
-            log.progress_complete(f"Completed collection of {len(self.job_listings)} listings")
+            log.info(f"Completed collection of {len(self.job_listings)} listings for Jobstreet")
             return self.job_listings
            
         except Exception as e:

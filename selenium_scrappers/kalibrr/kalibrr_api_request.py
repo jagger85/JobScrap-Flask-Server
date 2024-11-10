@@ -7,7 +7,6 @@ from models.JobListing import JobListing
 from logger.logger import get_logger
 from bs4 import BeautifulSoup
 from server.state_manager import StateManager
-from server.sse_observer import SSEObserver
 
 class KalibrrAPIClient:
     def __init__(self, date_range: DateRange = None):
@@ -15,12 +14,9 @@ class KalibrrAPIClient:
         self.base_url = "https://www.kalibrr.com/kjs/job_board/search"
         self.date_range = date_range
         
-        # Initialize state management
-        self.state_manager = StateManager()
-        self.sse_observer = SSEObserver(self.log.handlers[1])  # Get SSE handler from logger
-        self.state_manager.add_observer(self.sse_observer)
-        self.log.info("Retrieving job listings from Kalibrr")
 
+        self.state_manager = StateManager()
+        self.log.info("Retrieving job listings from Kalibrr")
         
         if date_range:
             self.start_date, self.end_date = self.get_date_range(date_range)
@@ -57,22 +53,18 @@ class KalibrrAPIClient:
         
         try:
             # Set state to PROCESSING when starting
-            self.state_manager.set_platform_state(Platforms.KALIBRR, PlatformStates.PROCESSING)
             self.log.info("Starting Kalibrr job listings retrieval")
             
             listings = self.get_listings_by_date_range()
             self.log.debug(f"Successfully retrieved {len(listings)} job listings from Kalibrr")
             
             if not listings:
-                self.log.warning("No job listings found for the specified criteria")
-                self.state_manager.set_platform_state(Platforms.KALIBRR, PlatformStates.FINISHED)
+                self.log.warning("No job listings found for the specified criteria in Kalibrr")
                 return listings
             
             # Return the snapshot
             try:
-                self.log.debug("Storing job listings snapshot")
                 self.log.info("Finished gathering job listings from Kalibrr")
-                self.state_manager.set_platform_state(Platforms.KALIBRR, PlatformStates.FINISHED)
                 return listings
                 
             except Exception as e:
