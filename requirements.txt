@@ -1,3 +1,7 @@
 requests
-python_dotenv
+python-dotenv
 colorlog
+selenium
+flask
+flask-cors
+flask-jwt-extended
