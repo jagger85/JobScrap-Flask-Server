@@ -44,7 +44,7 @@ class LinkedInParams:
     Attributes:
         location ([str]): The location to search for jobs.
         keywords ([str]): The keywords to use in the job search.
-        time_range (Optional[TimeRange]): The time range for job postings.
+        date_range (Optional[TimeRange]): The time range for job postings.
         job_type (Optional[JobType]): The type of job (e.g., full-time, part-time).
         experience_level (Optional[ExperienceLevel]): The required experience level.
         remote (Optional[Remote]): The work arrangement (e.g., on-site, remote).
@@ -54,12 +54,8 @@ class LinkedInParams:
     
     location: str = field(default="philippines", init=False)
     keywords: str = field(default="software development", init=False)
-    time_range = DateRange
-    #job_type: Optional[JobType] = None
-    #experience_level: Optional[ExperienceLevel] = None
-    #remote: Optional[Remote] = None
-    #company: Optional[str] = None
     country: str = field(default="PH", init=False)
+    date_range : DateRange 
 
     def __post_init__(self):
         log = get_logger("LinkedIn")
@@ -72,10 +68,10 @@ class LinkedInParams:
             log.warning("Keywords are empty")
             raise
         
-        if self.time_range == DateRange.PAST_15_DAYS:
+        if self.date_range == DateRange.PAST_15_DAYS:
             log.warning('LinkedIn does not provide 2 weeks, searching for last week instead')
             #TODO LinkedIn does not provide past 15 days
-            self.time_range == DateRange.PAST_WEEK
+            self.date_range == DateRange.PAST_WEEK
             pass
         
         # if self.job_type and not isinstance(self.job_type, JobType):
@@ -96,13 +92,7 @@ class LinkedInParams:
             "location": self.location,
             "keyword": self.keywords,
             "country": self.country,
-            "time_range": self.time_range.value
-            #"job_type": self.job_type.value if self.job_type else "",
-            #"experience_level": self.experience_level.value
-            #if self.experience_level
-            #else "",
-            #"remote": self.remote.value if self.remote else "",
-           # "company": self.company if self.company else "",
+            "date_range": self.date_range.value,
         }
     
 

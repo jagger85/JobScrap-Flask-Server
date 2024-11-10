@@ -1,79 +1,60 @@
 from dataclasses import dataclass, field
 from typing import Dict
 from logger.logger import get_logger
-from enum import Enum
 from constants.date_range import DateRange
+
 dataset_id = "gd_l4dx9j9sscpvs7no2"
 platform_name = "Indeed"
-
-class TimeRange(Enum):
-    PAST_24_HOURS = "Last 24 hours"
-    PAST_3_DAYS = "Last 3 days"
-    PAST_7D_DAYS = "Last 7 days"
-    PAST_14_DAYS = "Last 14 days"
 
 @dataclass(frozen=True)
 class IndeedParams:
     """
     A class to represent Indeed job search parameters.
-
-    Attributes:
-        location (Optional[str]): The location to search for jobs.
-        keywords (Optional[str]): The keywords to use in the job search.
-        country (str): The country code for the job search (default is "PH").
-        domain (str): The domain for the job search (default is "ph.indeed.com").
     """
-    #TODO add location
-    location: str = None
+    location: str = field(default="philippines", init=False)
     keywords: str = field(default="software developer", init=False)
     country: str = field(default="PH", init=False)
     domain: str = field(default="ph.indeed.com", init=False)
-    time_range = DateRange
+    date_range: DateRange
+    _time_range: str = field(init=False)
 
     def __post_init__(self):
         """
-        Validate the types and values of fields after initialization.
+        Convert DateRange to Indeed-specific time range string and validate fields.
         """
         log = get_logger("Indeed")
+        
+        # Create a dict object to store the frozen dataclass attributes
+        object.__setattr__(self, '_time_range', self._convert_date_range(self.date_range))
 
         if not isinstance(self.location, str) or not self.location.strip():
             log.warning("Location is empty")
-            raise
+            raise ValueError("Location must be a non-empty string")
 
         if not isinstance(self.keywords, str) or not self.keywords.strip():
             log.warning("Keywords are empty")
-            raise
+            raise ValueError("Keywords must be a non-empty string")
 
-        if self.time_range == DateRange.PAST_24_HOURS:
-            self.time_range == TimeRange.PAST_24_HOURS
-        
-        elif self.time_range == DateRange.PAST_WEEK:
-            self.time_range == TimeRange.PAST_7_DAYS
-        
-        elif self.time_range == DateRange.PAST_15_DAYS:
-            self.time_range == TimeRange.PAST_14_DAYS
-        
-        elif self.time_range == DateRange.PAST_MONTH:
-            log.warning("Indeed does not provide a last month search looking for las 14 days instead")
-            self.time_range == TimeRange.PAST_14_DAYS
-        
-            
+    @staticmethod
+    def _convert_date_range(date_range: DateRange) -> str:
+        """Convert DateRange enum to Indeed-specific string format."""
+        date_range_mapping = {
+            DateRange.PAST_24_HOURS: 'Last 24 hours',
+            DateRange.PAST_WEEK: 'Last 7 days',
+            DateRange.PAST_15_DAYS: 'Last 14 days',
+            DateRange.PAST_MONTH: 'Last 14 days',  # Adapted for Indeed's limitations
+        }
+        return date_range_mapping.get(date_range, 'Unknown')
+
     def to_dict(self) -> Dict:
-        """
-        Convert the IndeedParams object to a dictionary.
-
-        Returns:
-            Dict: A dictionary representation of the IndeedParams object.
-        """
-        result = {
+        """Convert the IndeedParams object to a dictionary."""
+        return {
             "country": self.country,
             "domain": self.domain,
             "location": self.location,
             "keyword_search": self.keywords,
-            "date_posted": self.time_range.value
+            "date_posted": self._time_range
         }
-
-        return result
 
     def get_dataset_id(self):
         """
@@ -86,7 +67,7 @@ class IndeedParams:
     
     def get_platform_name(self):
         """
-        Retrieve the platform
+        Retrieve the platform name.
 
         Returns:
             str: The platform name.
