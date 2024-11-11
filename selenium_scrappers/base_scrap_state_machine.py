@@ -77,12 +77,16 @@ class BaseScrapStateMachine(ABC):
             # Initialize Chrome driver with project-relative path
             log.debug("🔧 Initializing Chrome driver")
             # Get the chromedriver path from the environment variable
-            driver_path = os.getenv('CHROMEDRIVER_PATH', './chromedriver')
+            driver_path = os.getenv('CHROMEDRIVER_PATH')
+            chrome_path = os.getenv("CHROME_PATH")
             service = Service(driver_path)
             options = Options()
-            options.add_argument("--headless=new")
+            options.binary_location = chrome_path
             options.add_argument("--no-sandbox")
             options.add_argument("--disable-dev-shm-usage")
+            options.add_argument("--headless")
+            options.add_argument("--disable-gpu")
+            options.add_argument("--disable-software-rasterizer")
             self.driver = webdriver.Chrome(service=service, options=options)
             self.config.chrome_driver = self.driver  # Set reference in config
                 
