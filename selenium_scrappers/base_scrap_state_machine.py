@@ -7,6 +7,7 @@ from server.state_manager import StateManager
 from selenium import webdriver
 from selenium.webdriver.chrome.service import Service
 from selenium.webdriver.chrome.options import Options
+from dotenv import load_dotenv
 import os
 
 states = [
@@ -72,9 +73,11 @@ class BaseScrapStateMachine(ABC):
         log.debug('Starting Mission 🫡')
         self.date_range = Config().date_range
         try:
+            load_dotenv()
             # Initialize Chrome driver with project-relative path
             log.debug("🔧 Initializing Chrome driver")
-            driver_path = os.path.join(os.path.dirname(__file__), 'chromedriver')
+            # Get the chromedriver path from the environment variable
+            driver_path = os.getenv('CHROMEDRIVER_PATH', './chromedriver')
             service = Service(driver_path)
             options = Options()
             options.add_argument("--headless=new")
