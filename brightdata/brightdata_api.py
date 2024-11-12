@@ -85,7 +85,7 @@ class BrightDataClient:
         log.debug(f"Requested dataset {URL}")
 
         payload = [params.to_dict()]
-
+        print(payload)
         log.debug(f"Query params: {payload}")
 
         try:

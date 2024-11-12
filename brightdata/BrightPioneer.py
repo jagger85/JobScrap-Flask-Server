@@ -149,13 +149,15 @@ class BrightPioneer:
 
     def process_linkedIn_snapshot(self, snapshot):
         log.debug("Processing LinkedIn listings")
-
         processed_listings = []
 
         for listing in snapshot:
+            # Parse the date before creating JobListing
+            parsed_date = self.parse_date(listing.get('job_posted_date'))
+            
             processed_listing = JobListing(
                 site=self.params.get_platform_name(),
-                listing_date=self.parse_date(listing.get('job_posted_date')),
+                listing_date=parsed_date,
                 job_title=listing.get('job_title'),
                 company=listing.get('company_name'),
                 location=listing.get('job_location'),
@@ -168,42 +170,50 @@ class BrightPioneer:
             processed_listings.append(processed_listing)
 
         log.info(f"Received {len(processed_listings)} LinkedIn listings")
-        self.send_result(processed_listings)
         return processed_listings
 
     def parse_date(self, date_str):
-        try:
-            # Convert ISO format to MM-DD-YY
-            if isinstance(date_str, str):
-                parsed_date = datetime.strptime(date_str, '%Y-%m-%dT%H:%M:%S.%fZ')
-                return parsed_date.strftime('%m-%d-%y')
+        """
+        Convert ISO date string to MM-DD-YY format string.
+        Steps: string -> datetime -> formatted string
+        """
+        if not isinstance(date_str, str):
+            log.warning(f"Expected string for date, got {type(date_str)}")
             return None
+            
+        try:
+            # Step 1: Convert string to datetime object
+            date_object = datetime.fromisoformat(date_str.replace('Z', '+00:00'))
+            
+            # Step 2: Convert datetime to desired format string
+            return date_object.strftime('%m-%d-%y')
+            
         except Exception as e:
-            log.error(f"Error parsing date: {e}")
+            log.error(f"Error parsing date '{date_str}': {e}")
             return None
 
     def process_indeed_snapshot(self, snapshot):
         log.debug("Processing Indeed listings")
-
         processed_listings = []
 
         for listing in snapshot:
+            parsed_date = self.parse_date(listing.get('date_posted_parsed'))
+            
             processed_listing = JobListing(
                 site=self.params.get_platform_name(),
-                listing_date=self.parse_date(listing.get('date_posted_parsed')),
+                listing_date=parsed_date,
                 job_title=listing.get('job_title'),
                 company=listing.get('company_name'),
                 location=listing.get('location'),
-                employment_type=listing.get('job_type'),
-                position=None,  # Indeed doesn't provide seniority level
-                salary=listing.get('salary_formatted'),
+                employment_type=listing.get('job_type', 'Unspecified'),
+                position='Unspecified',
+                salary=listing.get('salary_formatted', 'Unspecified'),
                 description=listing.get('description_text'),
                 url=listing.get('url')
             )
             processed_listings.append(processed_listing)
 
         log.info(f"Received {len(processed_listings)} Indeed listings")
-        self.send_result(processed_listings)
         return processed_listings
 
     def start(self):
