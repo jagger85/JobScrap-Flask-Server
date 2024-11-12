@@ -7,12 +7,13 @@ from routes.sse_route import sse_bp
 from routes.listings_route import listings_bp
 from routes.auth_route import logging_bp
 from routes.fetch_route import fetch_listings_bp
+from routes.reset_route import reset_bp
 import logging
 from werkzeug.serving import WSGIRequestHandler, BaseWSGIServer
 from config.jwt_config import init_jwt
 
 log = get_logger('Server')
-set_log_level(logging.DEBUG)
+set_log_level(logging.INFO)
 load_dotenv()
 
 # Validate environment variables
@@ -47,6 +48,7 @@ app.register_blueprint(sse_bp)
 app.register_blueprint(listings_bp)
 app.register_blueprint(logging_bp)
 app.register_blueprint(fetch_listings_bp)
+app.register_blueprint(reset_bp)
 
 # Custom request handler for better error handling
 class CustomRequestHandler(WSGIRequestHandler):

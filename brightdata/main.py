@@ -9,7 +9,7 @@ from logger.logger import get_logger, set_log_level
 if __name__ == "__main__":
     global log
     log = get_logger("App")
-    set_log_level(logging.DEBUG)
+    set_log_level(logging.INFO)
 
     client = api(get_logger("BrightApi"))
     data_handler = StorageFactory.get_storage_handler(StorageType.JSON)

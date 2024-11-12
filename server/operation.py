@@ -6,7 +6,6 @@ from selenium_scrappers.jobstreet.jobstreet_scrapper_machine import JobstreetScr
 from brightdata.BrightPioneer import BrightPioneer
 from config.config import Config
 from data_handler import StorageType
-import logging
 from server.state_manager import StateManager
 from server.sse_observer import SSEObserver
 from constants.platform_states import PlatformStates
@@ -24,7 +23,6 @@ class Operation:
         # Initialize data handler
         self.data_handler = self.config.storage
 
-        set_log_level(logging.DEBUG)
         self.log = get_logger("ScraperOperation")
         
         # Initialize state management
