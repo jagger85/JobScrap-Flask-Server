@@ -92,7 +92,7 @@ class LinkedInParams:
             "location": self.location,
             "keyword": self.keywords,
             "country": self.country,
-            "date_range": self.date_range.value,
+            "time_range": self.date_range.value,
         }
     
 
