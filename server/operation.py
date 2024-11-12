@@ -46,8 +46,8 @@ class Operation:
                 self.platform_handlers[platform] = (BrightPioneer, {'params': LinkedInParams(date_range=self.config.date_range)})
             elif platform == Platforms.INDEED:
                 self.platform_handlers[platform] = (BrightPioneer, {'params': IndeedParams(date_range=self.config.date_range)})
-            elif platform == Platforms.GOOGLE:
-                self.platform_handlers[platform] = None
+            # elif platform == Platforms.GOOGLE:
+            #     self.platform_handlers[platform] = None
 
     def _handle_platform(self, platform: Platforms) -> list:
         """Generic platform handler that processes any supported platform"""

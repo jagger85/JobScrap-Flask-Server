@@ -1,7 +1,7 @@
 from enum import Enum
 
 class Platforms(Enum):
-    GOOGLE = "Google"
+    # GOOGLE = "Google"
     KALIBRR = "Kalibrr"
     JOBSTREET = "Jobstreet"
     INDEED = "Indeed"
