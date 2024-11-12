@@ -8,6 +8,15 @@ dataset_id = "gd_lpfll7v5hcqtkxl6l"
 platform_name = "LinkedIn"
 
 class TimeRange(Enum):
+    """
+    Enumeration of available time range filters for LinkedIn job searches.
+
+    Values:
+        PAST_24_HOURS
+        PAST_WEEK
+        PAST_MONTH
+        ANY_TIME
+    """
     PAST_24_HOURS = "Past 24 hours"
     PAST_WEEK = "Past week"
     PAST_MONTH = "Past month"
@@ -15,6 +24,16 @@ class TimeRange(Enum):
 
 
 class JobType(Enum):
+    """
+    Enumeration of available job types for LinkedIn job searches.
+
+    Values:
+        FULL_TIME
+        PART_TIME
+        CONTRACT
+        TEMPORARY
+        VOLUNTEER
+    """
     FULL_TIME = "Full-time"
     PART_TIME = "Part-time"
     CONTRACT = "Contract"
@@ -23,6 +42,16 @@ class JobType(Enum):
 
 
 class ExperienceLevel(Enum):
+    """
+    Enumeration of available experience levels for LinkedIn job searches.
+
+    Values:
+        INTERNSHIP
+        ENTRY_LEVEL
+        ASSOCIATE
+        MID_SENIOR_LEVEL
+        DIRECTOR
+    """
     INTERNSHIP = "Internship"
     ENTRY_LEVEL = "Entry level"
     ASSOCIATE = "Associate"
@@ -31,6 +60,14 @@ class ExperienceLevel(Enum):
 
 
 class Remote(Enum):
+    """
+    Enumeration of available work arrangements for LinkedIn job searches.
+
+    Values:
+        ON_SITE
+        REMOTE
+        HYBRID
+    """
     ON_SITE = "On-site"
     REMOTE = "Remote"
     HYBRID = "Hybrid"
@@ -39,17 +76,28 @@ class Remote(Enum):
 @dataclass(frozen=True)
 class LinkedInParams:
     """
-    A class to represent LinkedIn job search parameters.
+    Represents LinkedIn job search parameters with predefined values.
+
+    This class encapsulates the configuration parameters needed for
+    scraping job listings from LinkedIn, with immutable default values
+    specific to the Philippines market.
+
+    Args:
+        date_range (DateRange): The time period for which to search job listings.
 
     Attributes:
-        location ([str]): The location to search for jobs.
-        keywords ([str]): The keywords to use in the job search.
-        date_range (Optional[TimeRange]): The time range for job postings.
-        job_type (Optional[JobType]): The type of job (e.g., full-time, part-time).
-        experience_level (Optional[ExperienceLevel]): The required experience level.
-        remote (Optional[Remote]): The work arrangement (e.g., on-site, remote).
-        company (Optional[str]): The company name to filter job postings.
-        country (str): The country code for the job search (default is "PH").
+        location (str): Geographic location for job search, defaults to "philippines".
+        keywords (str): Search terms for job listings, defaults to "software development".
+        country (str): Country code for search region, defaults to "PH".
+        date_range (DateRange): Time range filter for job listings.
+
+    Raises:
+        ValueError: If location or keywords are empty or invalid strings.
+
+    Example:
+        >>> from constants.date_range import DateRange
+        >>> params = LinkedInParams(DateRange.PAST_WEEK)
+        >>> search_params = params.to_dict()
     """
     
     location: str = field(default="philippines", init=False)
@@ -58,6 +106,19 @@ class LinkedInParams:
     date_range : DateRange 
 
     def __post_init__(self):
+        """
+        Validate fields and handle date range conversion after initialization.
+
+        This method performs validation on the location and keywords fields,
+        and handles special cases for date range conversion to LinkedIn's format.
+
+        Raises:
+            ValueError: If location or keywords are empty or invalid strings.
+
+        Note:
+            LinkedIn does not support 15-day ranges, so PAST_15_DAYS is
+            automatically converted to PAST_WEEK.
+        """
         log = get_logger("LinkedIn")
         
         if not isinstance(self.location, str) or not self.location.strip():
@@ -88,6 +149,19 @@ class LinkedInParams:
         #     )
 
     def to_dict(self) -> Dict:
+        """
+        Convert the parameters to a dictionary format.
+
+        Returns:
+            Dict: Dictionary containing all search parameters formatted for LinkedIn API.
+                Keys include: location, keyword, country, time_range.
+
+        Example:
+            >>> params = LinkedInParams(DateRange.PAST_WEEK)
+            >>> config_dict = params.to_dict()
+            >>> print(config_dict['location'])
+            'philippines'
+        """
         return {
             "location": self.location,
             "keyword": self.keywords,
@@ -99,19 +173,38 @@ class LinkedInParams:
 
     def get_dataset_id(self):
         """
+        Retrieve the BrightData dataset identifier.
 
         Returns:
-            str: The unique identifier for the BrightData dataset.
+            str: The unique identifier for the LinkedIn dataset in BrightData.
+
+        Example:
+            >>> params = LinkedInParams(DateRange.PAST_WEEK)
+            >>> dataset_id = params.get_dataset_id()
         """
         return dataset_id
     
     def get_platform_name(self):
         """
+        Retrieve the platform identifier.
 
         Returns:
-            str: The platform name.
+            str: The platform name ("LinkedIn").
+
+        Example:
+            >>> params = LinkedInParams(DateRange.PAST_WEEK)
+            >>> platform = params.get_platform_name()
+            >>> print(platform)
+            'LinkedIn'
         """
         return platform_name
     
     def __dict__(self):
+        """
+        Provide dictionary representation of parameters.
+
+        Returns:
+            Dict: Dictionary containing all search parameters.
+                Equivalent to to_dict() method output.
+        """
         return self.to_dict()

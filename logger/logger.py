@@ -47,11 +47,39 @@ SSE_FORMAT = "%(message)s"
 sse_formatter = logging.Formatter(SSE_FORMAT)
 
 class SSELoggingHandler(logging.Handler):
+    """
+    Custom logging handler for Server-Sent Events (SSE).
+
+    This handler manages logging messages in a queue format suitable for
+    SSE transmission, with support for different log levels and message types.
+
+    Attributes:
+        queue (Queue): Thread-safe queue for storing formatted log messages.
+    """
+
     def __init__(self):
+        """
+        Initialize the SSE logging handler with a message queue.
+        """
         super().__init__()
         self.queue = Queue()
 
     def emit(self, record):
+        """
+        Process and queue a log record for SSE transmission.
+
+        This method formats the log record into a structured message
+        and adds it to the message queue.
+
+        Args:
+            record (LogRecord): The log record to process and queue.
+
+        Returns:
+            None: Messages are added to the internal queue.
+
+        Raises:
+            None: All exceptions are caught and handled internally.
+        """
         try:
             level_to_type = {
                 logging.DEBUG: "debug",
@@ -62,10 +90,9 @@ class SSELoggingHandler(logging.Handler):
                 logging.CRITICAL: "error",
             }
 
-            # Create a clean message structure
             message = {
                 "type": level_to_type.get(record.levelno, "info"),
-                "message": record.getMessage()  # Get clean message without formatting
+                "message": record.getMessage()
             }
             
             self.queue.put(message)
@@ -74,10 +101,17 @@ class SSELoggingHandler(logging.Handler):
 
     def get_message(self):
         """
-        Retrieves the next message from the queue if available.
-        
+        Retrieve the next message from the queue.
+
         Returns:
-            dict: Message containing type and content, or None if queue is empty
+            dict: Message containing type and content, or None if queue is empty.
+                Format: {'type': str, 'message': str}
+
+        Example:
+            >>> handler = SSELoggingHandler()
+            >>> msg = handler.get_message()
+            >>> if msg:
+            >>>     print(f"Type: {msg['type']}, Message: {msg['message']}")
         """
         if not self.queue.empty():
             return self.queue.get()
@@ -89,13 +123,34 @@ sse_handler.setFormatter(sse_formatter)  # Use plain formatter instead of colore
 
 # Custom StreamHandler for progress messages
 class ProgressStreamHandler(logging.StreamHandler):
+    """
+    Custom stream handler for progress messages with line clearing capability.
+
+    This handler provides special formatting for progress messages, including
+    dynamic line clearing for updating progress indicators.
+    """
+
     def emit(self, record):
+        """
+        Process and output a log record with special handling for progress messages.
+
+        This method handles line clearing and formatting for progress messages
+        while maintaining standard output for other message types.
+
+        Args:
+            record (LogRecord): The log record to process and output.
+
+        Returns:
+            None: Output is written directly to the stream.
+
+        Raises:
+            None: All exceptions are caught and handled internally.
+        """
         try:
             msg = self.format(record)
             stream = self.stream
             
             if record.levelno == PROGRESS:
-                # Dynamically clear line based on message length
                 clear_line = '\r' + ' ' * (len(msg) + 10) + '\r'
                 stream.write(clear_line)
                 stream.write(msg)
@@ -130,46 +185,57 @@ def get_sse_handler() -> SSELoggingHandler:
 
 def get_logger(name):
     """
-    Get or create a logger with consistent configuration.
+    Create or retrieve a logger with consistent configuration.
+
+    This function ensures all loggers have consistent handlers and
+    respect the root logger's level settings.
+
     Args:
-        name: Name of the logger
+        name (str): Name of the logger to create or retrieve.
+
     Returns:
-        Logger instance with proper configuration
+        Logger: Configured logger instance with appropriate handlers.
+
+    Example:
+        >>> logger = get_logger("my_module")
+        >>> logger.info("This is a test message")
     """
     logger = logging.getLogger(name)
-    
-    # Get the root logger's level (set by set_log_level)
     root_level = logging.getLogger().getEffectiveLevel()
-    
-    # Ensure this logger uses the root's level
     logger.setLevel(root_level)
     
-    # Ensure single handler by removing any existing ones
     if not logger.handlers:
         logger.addHandler(console_handler)
         logger.addHandler(get_sse_handler())
         logger.addHandler(ErrorReportHandler())
         
-    # Make sure handler also respects the level
     console_handler.setLevel(root_level)
-    
     return logger
 
 def set_log_level(level):
     """
-    Set the log level for all loggers in the application.
+    Set the global logging level for all loggers.
+
+    This function updates the log level for both the root logger and
+    all existing logger instances.
+
     Args:
-        level: Can be logging.DEBUG, logging.INFO, logging.WARNING, 
-              logging.ERROR, logging.CRITICAL or their string equivalents
+        level (Union[str, int]): Log level to set. Can be logging constant
+            (e.g., logging.DEBUG) or string name ('DEBUG', 'INFO', etc.).
+
+    Returns:
+        None: Log levels are set directly on logger instances.
+
+    Example:
+        >>> set_log_level('DEBUG')
+        >>> set_log_level(logging.INFO)
     """
     if isinstance(level, str):
         level = level.upper()
         level = getattr(logging, level)
     
-    # Set root logger level
     logging.getLogger().setLevel(level)
     
-    # Set level for all existing loggers
     for logger_name in logging.root.manager.loggerDict:
         logging.getLogger(logger_name).setLevel(level)
 

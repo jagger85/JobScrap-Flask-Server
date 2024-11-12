@@ -12,6 +12,22 @@ from logger.logger import get_logger
 
 
 class JobstreetScrapperMachine(BaseScrapStateMachine):
+    """
+    State machine implementation for scraping Jobstreet job listings.
+
+    This class manages the complete lifecycle of scraping operations for Jobstreet,
+    including URL construction, data collection, and error handling.
+
+    Attributes:
+        driver (WebDriver): Selenium WebDriver instance for browser automation.
+        listings (list): Collection of scraped job listings.
+        state_manager (StateManager): Manages the scraping operation state.
+        log (Logger): Logger instance for operation tracking.
+
+    Example:
+        >>> scrapper = JobstreetScrapperMachine()
+        >>> listings = scrapper.get_job_listings()
+    """
     def __init__(self):
         global log
         log = get_logger("Jobstreet")
@@ -24,7 +40,19 @@ class JobstreetScrapperMachine(BaseScrapStateMachine):
 
     def build_jobstreet_url(self) -> str:
         """
-        Constructs the Jobstreet URL with the appropriate date range parameter.
+        Construct the Jobstreet URL with appropriate search parameters.
+
+        This method builds a URL with classification, subclassification, and
+        date range parameters for job searching.
+
+        Returns:
+            str: Complete URL for Jobstreet job search.
+
+        Example:
+            >>> scrapper = JobstreetScrapperMachine()
+            >>> url = scrapper.build_jobstreet_url()
+            >>> print(url)
+            'https://www.jobstreet.com.ph/jobs?classification=...'
         """
         date_range_mapping = {
             DateRange.PAST_24_HOURS: "1",
@@ -43,7 +71,19 @@ class JobstreetScrapperMachine(BaseScrapStateMachine):
 
     def get_job_listings(self):
         """
-        Retrieves listing listings from Jobstreet.
+        Retrieve job listings from Jobstreet.
+
+        This method initializes the navigator and requests job listings,
+        handling any errors that occur during the process.
+
+        Returns:
+            list: Collection of job listings.
+                Returns empty list if no listings are found or on error.
+
+        Example:
+            >>> scrapper = JobstreetScrapperMachine()
+            >>> listings = scrapper.get_job_listings()
+            >>> print(f"Found {len(listings)} jobs")
         """
         try:
             navigator = JobstreetNavigator(logger=log, driver=self.driver)
@@ -58,6 +98,23 @@ class JobstreetScrapperMachine(BaseScrapStateMachine):
             return []
 
     def process_job_listings(self) -> List[JobListing]:
+        """
+        Process raw job listings into structured JobListing objects.
+
+        This method transforms the raw listing data into standardized JobListing
+        objects, including date conversion and field normalization.
+
+        Returns:
+            List[JobListing]: Collection of processed job listings.
+                Returns empty list if no listings are available or on error.
+
+        Raises:
+            Exception: If processing fails, sets platform state to ERROR and re-raises.
+
+        Example:
+            >>> scrapper = JobstreetScrapperMachine()
+            >>> processed_listings = scrapper.process_job_listings()
+        """
         try:
             if not hasattr(self, 'listings') or not self.listings:
                 log.error("No listings found to process")
@@ -90,19 +147,45 @@ class JobstreetScrapperMachine(BaseScrapStateMachine):
             raise
 
     def process_error(self):
+        """
+        Handle errors during the scraping process.
+
+        This method logs the error and updates the platform state to ERROR
+        when exceptions occur during scraping operations.
+
+        Returns:
+            None: State changes are handled internally.
+
+        Example:
+            >>> scrapper = JobstreetScrapperMachine()
+            >>> try:
+            >>>     listings = scrapper.get_job_listings()
+            >>> except Exception:
+            >>>     scrapper.process_error()
+        """
         log.error("Error occurred during Jobstreet scraping")
         self.state_manager.set_platform_state(Platforms.JOBSTREET, PlatformStates.ERROR)
 
 
 def convert_relative_dates_to_absolute(date_str):
     """
-    Converts a relative listing date to an absolute date in MM-DD-YY format.
+    Convert relative date strings to absolute dates in MM-DD-YY format.
+
+    This function parses relative date strings (e.g., "Posted 2h ago") and
+    converts them to absolute dates based on the current time.
 
     Args:
-        date_str (str): A string representing a relative date.
+        date_str (str): Relative date string to convert.
+            Expected format: "Posted Xm/h/d ago"
 
     Returns:
-        str: A string representing the absolute date in MM-DD-YY format.
+        str: Absolute date in MM-DD-YY format.
+            Returns None if the date string cannot be parsed.
+
+    Example:
+        >>> date = convert_relative_dates_to_absolute("Posted 2h ago")
+        >>> print(date)
+        '03-20-24'
     """
     now = datetime.now()
     match = re.match(r"Posted (\d+)([mhd]) ago", date_str)

@@ -9,6 +9,30 @@ from bs4 import BeautifulSoup
 from server.state_manager import StateManager
 
 class KalibrrAPIClient:
+    """
+    Client for interacting with Kalibrr's job listing API.
+
+    This class manages API requests to Kalibrr's job board, including date range
+    filtering and response processing.
+
+    Args:
+        date_range (DateRange, optional): Time period for which to collect job listings.
+            Defaults to None for all available listings.
+
+    Attributes:
+        log (Logger): Logger instance for operation tracking.
+        base_url (str): Base URL for Kalibrr's job board API.
+        date_range (DateRange): Selected time period for job listings.
+        state_manager (StateManager): Manages the scraping operation state.
+        start_date (datetime): Start of the date range filter.
+        end_date (datetime): End of the date range filter.
+
+    Example:
+        >>> from constants.date_range import DateRange
+        >>> client = KalibrrAPIClient(DateRange.PAST_WEEK)
+        >>> listings = client.start()
+    """
+
     def __init__(self, date_range: DateRange = None):
         self.log = get_logger("Kalibrr")
         self.base_url = "https://www.kalibrr.com/kjs/job_board/search"
@@ -26,6 +50,22 @@ class KalibrrAPIClient:
             self.log.debug("Initialized KalibrrAPIClient without date range")
 
     def get_date_range(self, range_type: DateRange) -> tuple[datetime, datetime]:
+        """
+        Calculate start and end dates based on the specified range type.
+
+        Args:
+            range_type (DateRange): Type of date range to calculate.
+
+        Returns:
+            tuple[datetime, datetime]: Tuple containing (start_date, end_date).
+
+        Raises:
+            ValueError: If an unsupported date range is provided.
+
+        Example:
+            >>> client = KalibrrAPIClient()
+            >>> start, end = client.get_date_range(DateRange.PAST_WEEK)
+        """
         end_date = datetime.now(timezone.utc)
         
         if range_type == DateRange.PAST_24_HOURS:
@@ -43,17 +83,29 @@ class KalibrrAPIClient:
 
     def start(self) -> list[JobListing]:
         """
-        Main method to handle the complete flow of retrieving job listings from Kalibrr
-        and return a JobListing array.
-        
+        Main method to handle the complete flow of retrieving job listings.
+
+        This method manages the entire process of fetching and processing
+        job listings from Kalibrr's API.
+
         Returns:
-            list[JobListing]: List of job listings matching the criteria.
+            list[JobListing]: Collection of processed job listings.
+                Returns empty list if no listings are found or on error.
+
+        Raises:
+            requests.RequestException: If API request fails.
+            ValueError: If date range is invalid.
+            Exception: For other unexpected errors.
+
+        Example:
+            >>> client = KalibrrAPIClient(DateRange.PAST_WEEK)
+            >>> listings = client.start()
+            >>> print(f"Found {len(listings)} jobs")
         """
         self.log.debug(f"Starting Kalibrr job listings retrieval for date range: {self.date_range.value if self.date_range else 'All'}")
         
         try:
             # Set state to PROCESSING when starting
-            self.log.info("Starting Kalibrr job listings retrieval")
             
             listings = self.get_listings_by_date_range()
             self.log.debug(f"Successfully retrieved {len(listings)} job listings from Kalibrr")
@@ -86,6 +138,20 @@ class KalibrrAPIClient:
             raise
 
     def get_listings_by_date_range(self) -> list[JobListing]:
+        """
+        Retrieve and filter job listings based on date range.
+
+        This method handles pagination and date filtering of job listings
+        from Kalibrr's API.
+
+        Returns:
+            list[JobListing]: Collection of filtered job listings.
+                Returns empty list if no listings match criteria.
+
+        Example:
+            >>> client = KalibrrAPIClient(DateRange.PAST_WEEK)
+            >>> listings = client.get_listings_by_date_range()
+        """
         all_listings = []
         offset = 0
         limit = 15
@@ -133,6 +199,22 @@ class KalibrrAPIClient:
         return all_listings
 
     def fetch_listings(self, limit=15, offset=0):
+        """
+        Make API request to fetch job listings with pagination.
+
+        Args:
+            limit (int, optional): Number of listings to fetch per request.
+                Defaults to 15.
+            offset (int, optional): Number of listings to skip.
+                Defaults to 0.
+
+        Returns:
+            dict: API response containing job listings and metadata.
+
+        Example:
+            >>> client = KalibrrAPIClient()
+            >>> response = client.fetch_listings(limit=20, offset=40)
+        """
         self.log.debug(
             f"Fetching listings with params - limit: {limit}, offset: {offset}, "
             f"start_date: {self.start_date}, end_date: {self.end_date}"
@@ -157,6 +239,23 @@ class KalibrrAPIClient:
         return response.json()
 
     def map_kalibrr_listing_to_job_listing(self, listing_data: dict) -> JobListing:
+        """
+        Convert Kalibrr API response format to JobListing object.
+
+        This method processes raw API data and formats it into a standardized
+        JobListing object, including salary formatting and location processing.
+
+        Args:
+            listing_data (dict): Raw job listing data from Kalibrr API.
+
+        Returns:
+            JobListing: Processed job listing in standard format.
+
+        Example:
+            >>> client = KalibrrAPIClient()
+            >>> raw_data = client.fetch_listings()['jobs'][0]
+            >>> listing = client.map_kalibrr_listing_to_job_listing(raw_data)
+        """
         salary = "Not specified"
         if listing_data.get("salary_shown"):
             base = listing_data.get("base_salary")

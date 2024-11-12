@@ -37,6 +37,27 @@ transitions = [
 
 
 class BrightPioneer:
+    """
+    Manages the job listing scraping process using BrightData's API.
+
+    This class implements a state machine to handle the complete lifecycle of
+    job listing collection, from requesting data to processing results.
+
+    Args:
+        params (Union[LinkedInParams, IndeedParams]): Configuration parameters
+            specific to the platform being scraped.
+
+    Attributes:
+        state_manager (StateManager): Manages the state of the scraping operation.
+        params: Platform-specific parameters for the scraping operation.
+        config (Config): Application configuration settings.
+        waiting_time (int): Time to wait between status checks in seconds.
+        waiting_retries (int): Maximum number of retry attempts.
+        data_manager: Handler for data storage operations.
+        listings (list): Collected job listings.
+        machine (Machine): State machine controlling the scraping workflow.
+    """
+
     def __init__(self,  params: Union[LinkedInParams, IndeedParams]):
         self.state_manager = StateManager()
 
@@ -72,12 +93,23 @@ class BrightPioneer:
     # These methods are automatically called when the machine enters specific states.
 
     def on_enter_requesting_data(self):
-        log.info("Requesting dataset...")
+        """
+        Handle the data request state of the scraping process.
+
+        This method is automatically called when entering the requesting_data state.
+        It initiates the API request for job listings snapshot and handles the response.
+
+        Returns:
+            None: State transition is handled internally.
+
+        Raises:
+            None: All exceptions are caught and handled within the method.
+        """
         try:
             response = client.request_snapshot(self.params)
             if response.get("status") == "success":
                 self.dataset_id = response.get("dataset_id")
-                log.info("Dataset request successful")
+                log.info("Joblistings request successful")
                 self.wait_data()
             elif response.get("status") == "error":
                 error_message = response.get("message", "Unknown error occurred")
@@ -91,6 +123,15 @@ class BrightPioneer:
             self.error_occurred(f"Exception during dataset request: {str(e)}")
 
     def on_enter_waiting_data(self):
+        """
+        Handle the waiting state while data is being prepared.
+
+        This method polls the API at regular intervals to check if the requested
+        data is ready for retrieval.
+
+        Returns:
+            None: State transition is handled internally.
+        """
         check_interval = 60  # Check every 60 seconds
         waiting_minutes = 0
         log.info(f"Waiting for {platform_name} listings this can take several minutes")
@@ -100,7 +141,7 @@ class BrightPioneer:
             log.debug(status.get("status"))
 
             if status["status"] == "ready":
-                log.info("Data is ready!")
+                log.info(f"Data for {platform_name} ready!")
                 self.process_data()
                 return
 
@@ -148,6 +189,19 @@ class BrightPioneer:
         log.error(msg)
 
     def process_linkedIn_snapshot(self, snapshot):
+        """
+        Process raw LinkedIn job listing data into structured format.
+
+        Args:
+            snapshot (list): Raw job listing data from BrightData API.
+
+        Returns:
+            list: Processed job listings in JobListing format.
+
+        Example:
+            >>> pioneer = BrightPioneer(LinkedInParams())
+            >>> processed = pioneer.process_linkedIn_snapshot(raw_data)
+        """
         log.debug("Processing LinkedIn listings")
         processed_listings = []
 
@@ -174,8 +228,20 @@ class BrightPioneer:
 
     def parse_date(self, date_str):
         """
-        Convert ISO date string to MM-DD-YY format string.
-        Steps: string -> datetime -> formatted string
+        Convert ISO date string to MM-DD-YY format.
+
+        Args:
+            date_str (str): Date string in ISO format.
+
+        Returns:
+            str: Formatted date string in MM-DD-YY format.
+                Returns None if parsing fails.
+
+        Example:
+            >>> pioneer = BrightPioneer(params)
+            >>> formatted_date = pioneer.parse_date("2024-03-20T00:00:00Z")
+            >>> print(formatted_date)
+            '03-20-24'
         """
         if not isinstance(date_str, str):
             log.warning(f"Expected string for date, got {type(date_str)}")
@@ -193,6 +259,19 @@ class BrightPioneer:
             return None
 
     def process_indeed_snapshot(self, snapshot):
+        """
+        Process raw Indeed job listing data into structured format.
+
+        Args:
+            snapshot (list): Raw job listing data from BrightData API.
+
+        Returns:
+            list: Processed job listings in JobListing format.
+
+        Example:
+            >>> pioneer = BrightPioneer(IndeedParams())
+            >>> processed = pioneer.process_indeed_snapshot(raw_data)
+        """
         log.debug("Processing Indeed listings")
         processed_listings = []
 
@@ -217,6 +296,20 @@ class BrightPioneer:
         return processed_listings
 
     def start(self):
+        """
+        Initialize the scraping process and collect job listings.
+
+        This method triggers the state machine and manages the complete
+        scraping lifecycle.
+
+        Returns:
+            list: Collected and processed job listings.
+                Returns empty list if an error occurs.
+
+        Example:
+            >>> pioneer = BrightPioneer(LinkedInParams())
+            >>> listings = pioneer.start()
+        """
         try:
             self.final_listings = []
             self.launch()

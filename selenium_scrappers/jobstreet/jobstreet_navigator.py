@@ -5,6 +5,29 @@ from selenium.webdriver.support import expected_conditions as EC
 from selenium.common.exceptions import NoSuchElementException
 
 class JobstreetNavigator:
+    """
+    Controls the navigation and scraping flow for Jobstreet job listings.
+
+    This class manages the complete process of collecting job listings from
+    Jobstreet, including pagination and detailed information extraction.
+
+    Args:
+        logger (Logger): Logger instance for tracking operations.
+        driver (WebDriver): Selenium WebDriver instance for browser automation.
+
+    Attributes:
+        driver (WebDriver): WebDriver instance for page interactions.
+        page (str): Current page URL.
+        home_page (JobstreetHomePage): Handler for home page interactions.
+        job_listings (list): Collection of scraped job listings.
+
+    Example:
+        >>> from selenium import webdriver
+        >>> driver = webdriver.Chrome()
+        >>> navigator = JobstreetNavigator(logger, driver)
+        >>> listings = navigator.request_listings()
+    """
+
     def __init__(self, logger, driver,):
         global log
         log = logger
@@ -14,7 +37,24 @@ class JobstreetNavigator:
         self.job_listings = []
 
     def request_listings(self):
-        """Main method to control the scraping flow"""
+        """
+        Main method to control the scraping flow.
+
+        This method orchestrates the complete scraping process, including
+        pagination and detailed information collection for each job listing.
+
+        Returns:
+            list: Collection of job listings, each containing detailed information.
+                Returns empty list if no listings are found or on error.
+
+        Raises:
+            None: All exceptions are caught and handled internally.
+
+        Example:
+            >>> navigator = JobstreetNavigator(logger, driver)
+            >>> listings = navigator.request_listings()
+            >>> print(f"Collected {len(listings)} job listings")
+        """
         try:
             log.debug("Starting job listings collection process")
             # Assuming the driver is already at the correct URL
@@ -67,7 +107,7 @@ class JobstreetNavigator:
                 self.page = new_url
                 log.debug(f"Navigated to page {next_page}")
             
-            log.info(f"Completed collection of {len(self.job_listings)} listings for Jobstreet")
+            log.info(f"Retrieved {len(self.job_listings)} listings for Jobstreet")
             return self.job_listings
            
         except Exception as e:
@@ -75,7 +115,34 @@ class JobstreetNavigator:
             return []
 
     def _get_listing_details(self, listing_id):
-        """Try to get listing details by clicking the overlay link"""
+        """
+        Extract detailed information for a specific job listing.
+
+        This method navigates to the job detail page and extracts all available
+        information about the position.
+
+        Args:
+            listing_id (str): Unique identifier for the job listing.
+
+        Returns:
+            dict: Dictionary containing job details with keys:
+                - title: Job title
+                - company: Company name
+                - location: Job location
+                - work_type: Type of employment
+                - description: Full job description
+                - listing_date: Date posted
+                - salary: Salary information (if available)
+                - job_link: URL of the job listing
+                - listing_id: Original listing ID
+                Returns None if essential fields are missing or on error.
+
+        Example:
+            >>> navigator = JobstreetNavigator(logger, driver)
+            >>> details = navigator._get_listing_details("123456")
+            >>> if details:
+            >>>     print(f"Found job: {details['title']}")
+        """
         try:
             log.debug(f"Attempting to get details for listing {listing_id}")
             detail_url = f"https://www.jobstreet.com.ph/job/{listing_id}"

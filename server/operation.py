@@ -1,4 +1,4 @@
-from logger.logger import get_logger, set_log_level, get_sse_handler
+from logger.logger import get_logger, get_sse_handler
 from constants.platforms import Platforms
 from constants.date_range import DateRange
 from selenium_scrappers.kalibrr.kalibrr_api_request import KalibrrAPIClient
@@ -13,6 +13,26 @@ from models.IndeedParams import IndeedParams
 from models.LinkedInParams import LinkedInParams
 
 class Operation:
+    """
+    Manages scraping operations across multiple job listing platforms.
+
+    This class coordinates the scraping of job listings from various platforms,
+    handles state management, and processes the collected data.
+
+    Args:
+        date_range (DateRange): The time period for which to collect job listings.
+        platforms (list[Platforms]): List of platforms to scrape from.
+
+    Attributes:
+        config (Config): Configuration settings for the scraping operation.
+        listings (list): Collected job listings from all platforms.
+        data_handler: Handler for storing and processing job listings.
+        state_manager (StateManager): Manages the state of each platform's operation.
+        sse_observer (SSEObserver): Handles Server-Sent Events for real-time updates.
+        platforms (list[Platforms]): List of platforms to scrape from.
+        platform_handlers (dict): Mapping of platforms to their respective handler classes.
+    """
+
     def __init__(self, date_range: DateRange, platforms: list[Platforms]):
         self.config = Config()
         self.config.platforms = [platform.value for platform in platforms]
@@ -50,13 +70,29 @@ class Operation:
             #     self.platform_handlers[platform] = None
 
     def _handle_platform(self, platform: Platforms) -> list:
-        """Generic platform handler that processes any supported platform"""
+        """
+        Process job listings collection for a specific platform.
+
+        This method initializes the appropriate scraper for the given platform,
+        manages its state, and handles any errors during the scraping process.
+
+        Args:
+            platform (Platforms): The platform to scrape from.
+
+        Returns:
+            list: Collection of job listings from the platform.
+                Returns empty list if scraping fails or no jobs are found.
+
+        Example:
+            >>> operation = Operation(DateRange.PAST_MONTH, [Platforms.JOBSTREET])
+            >>> listings = operation._handle_platform(Platforms.JOBSTREET)
+        """
         self.log.info(f"Starting to collect jobs from {platform.value}")
         self.state_manager.set_platform_state(platform, PlatformStates.PROCESSING)
         
         handler_info = self.platform_handlers.get(platform)
         if not handler_info:
-            self.log.info(f"{platform.value} collection is not available at the moment")
+            self.log.warning(f"{platform.value} collection is not available at the moment")
             self.state_manager.set_platform_state(platform, PlatformStates.ERROR)
             return []
 
@@ -79,6 +115,21 @@ class Operation:
             return []
 
     def scrape_all_sites(self):
+        """
+        Collect job listings from all configured platforms.
+
+        This method coordinates the scraping process across all selected platforms,
+        processes the collected listings through the data handler, and stores
+        the results in the configuration.
+
+        Returns:
+            list: Processed job listings from all platforms.
+                Returns empty list if no listings are found.
+
+        Example:
+            >>> operation = Operation(DateRange.PAST_MONTH, [Platforms.KALIBRR])
+            >>> listings = operation.scrape_all_sites()
+        """
         self.listings = []
         self.log.info("Starting to collect job listings from all selected platforms...")
         
@@ -101,6 +152,13 @@ class Operation:
             return []
 
     def get_listings(self):
+        """
+        Retrieve the collected job listings.
+
+        Returns:
+            list: The current collection of job listings.
+                Returns None if no scraping has been performed yet.
+        """
         return self.listings
 
 if __name__ == "__main__":
