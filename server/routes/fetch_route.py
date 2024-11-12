@@ -7,9 +7,9 @@ fetch_listings_bp = Blueprint("fetch_listings", __name__)
 
 # Route to handle preflight requests for CORS
 @fetch_listings_bp.route("/fetch-listings", methods=["OPTIONS", "GET"])
+@jwt_required()
 def listings_options():
     current_app.logger.debug("Received request for /fetch-listings")
-    current_app.logger.debug(f"Request method: {request.method}")
     
     if request.method == "OPTIONS":
         response = jsonify({"message": "OK"})
@@ -43,4 +43,5 @@ def get_listings():
         return jsonify({
             "error": "An unexpected error occurred",
             "message": str(e)
-        }), 500
+        }), 
+        

@@ -26,12 +26,14 @@ def sse_stream():
         state_manager = StateManager()
         
         # Send initial connection message
-        yield f"data: {json.dumps({'type': MessageType.INFO.value, 'message': 'Connection established'})}\n\n"
-        
+        connection_message = {'type': MessageType.INFO.value, 'message': 'Connection established'}
+        yield f"data: {json.dumps(connection_message)}\n\n"
+
         # Send current platform states
         platform_states = state_manager.get_all_states()
-        yield f"data: {json.dumps({'type': MessageType.PLATFORM_STATE.value, 'platforms': {k.value: v.value for k, v in platform_states.items()}})}\n\n"
-        
+        platform_states_message = {'type': MessageType.PLATFORM_STATE.value, 'platforms': {k.value: v.value for k, v in platform_states.items()}}
+        yield f"data: {json.dumps(platform_states_message)}\n\n"
+
         try:
             while True:
                 message = sse_handler.get_message()
