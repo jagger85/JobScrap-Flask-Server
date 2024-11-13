@@ -5,9 +5,10 @@ from typing import List
 from config.config import Config
 from server.state_manager import StateManager
 from selenium import webdriver
-from selenium.webdriver.chrome.service import Service
 from selenium.webdriver.chrome.options import Options
-import os
+from selenium.webdriver.chrome.service import Service
+from functools import lru_cache
+from webdriver_manager.chrome import ChromeDriverManager
 
 states = [
     "idle",
@@ -38,48 +39,34 @@ transitions = [
     {"trigger": "error_occurred", "source": "*", "dest": "error"},
 ]
 
+@lru_cache(maxsize=1)
+def get_driver_path():
+    return ChromeDriverManager().install()
+
 class BaseScrapStateMachine(ABC):
     """
-    Abstract base class for scraping state machines.
-
-    This class provides the core state machine functionality for scraping operations,
-    defining common states, transitions, and error handling mechanisms.
+    BaseScrapeState provides the core state machine functionality for scraping operations.
+    This abstract base class defines the common states and transitions that all scrapers share.
 
     Args:
-        logger (Logger): Logger instance for tracking operations.
+        scraper: Reference to the voyager instance implementing required methods
 
     Attributes:
-        config (Config): Application configuration settings.
-        state_manager (StateManager): Manages the scraping operation state.
-        machine (Machine): State machine controlling the scraping workflow.
-        driver (WebDriver): Selenium WebDriver instance for browser automation.
-        date_range (DateRange): Time period filter for job listings.
-        final_listings (list): Collection of processed job listings.
+        states (list): Available states in the scraping workflow
+        transitions (list): Defined state transitions
+        current_page (int): Current page being scraped
+        total_jobs (int): Total number of jobs scraped
+        failed_attempts (int): Count of failed scraping attempts
 
-    States:
-        - idle: Initial state
-        - loading_listings: Fetching job listings
-        - processing_listings: Processing raw listings data
-        - sending_listings: Preparing results for transmission
-        - error: Error handling state
-
-    Example:
-        >>> class MyScrapperMachine(BaseScrapStateMachine):
-        >>>     def get_job_listings(self):
-        >>>         # Implementation
-        >>>         pass
+    Triggers:
+        launch: Moves to loading_listings state from any state
+        load_listings: Moves from idle to loading_listings state
+        process_listings: Moves from loading_listings to processing_listings state
+        send_result: Moves from processing_listings to sending_listings state
+        error_occurred: Moves to error state from any state
     """
     
     def __init__(self, logger):
-        """
-        Initialize the state machine with required components.
-
-        Args:
-            logger (Logger): Logger instance for operation tracking.
-
-        Raises:
-            Exception: If Chrome driver initialization fails.
-        """
         global log
         log = logger
         self.config = Config()
@@ -90,15 +77,29 @@ class BaseScrapStateMachine(ABC):
         log.debug('Starting Mission 🫡')
         self.date_range = Config().date_range
         try:
-            # Initialize Chrome driver with project-relative path
             log.debug("🔧 Initializing Chrome driver")
-            current_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-            chromedriver_path = os.path.join(current_dir, "chromedriver")
-            service = Service(chromedriver_path)
             options = Options()
+            
+            # Headless mode
             options.add_argument("--headless=new")
-            self.driver = webdriver.Chrome(service=service, options=options)
-            self.config.chrome_driver = self.driver  # Set reference in config
+            
+            # Security and stability
+            options.add_argument("--no-sandbox")
+            options.add_argument("--disable-dev-shm-usage")
+            
+            # Performance optimization
+            options.add_argument("--disable-gpu")
+            options.add_argument("--disable-extensions")
+            options.add_argument("--disable-notifications")
+            
+            # Set viewport size (needed even in headless mode)
+            options.add_argument("--window-size=1920,1080")
+            
+            self.driver = webdriver.Chrome(
+                service=Service(get_driver_path()),
+                options=options
+            )
+            self.config.chrome_driver = self.driver
                 
         except Exception as e:
             log.error(f"❌ Failed to initialize scraper: {str(e)}")

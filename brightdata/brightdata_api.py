@@ -88,6 +88,8 @@ class BrightDataClient:
         print(payload)
         log.debug(f"Query params: {payload}")
 
+        log.debug(f"Query params: {payload}")
+
         try:
             response = requests.post(
                 URL, headers=self.headers, json=payload, timeout=30
