@@ -5,10 +5,10 @@ from typing import List
 from config.config import Config
 from server.state_manager import StateManager
 from selenium import webdriver
-from selenium.webdriver.chrome.service import Service
 from selenium.webdriver.chrome.options import Options
-from dotenv import load_dotenv
-import os
+from selenium.webdriver.chrome.service import Service
+from functools import lru_cache
+from webdriver_manager.chrome import ChromeDriverManager
 
 states = [
     "idle",
@@ -38,6 +38,10 @@ transitions = [
     },
     {"trigger": "error_occurred", "source": "*", "dest": "error"},
 ]
+
+@lru_cache(maxsize=1)
+def get_driver_path():
+    return ChromeDriverManager().install()
 
 class BaseScrapStateMachine(ABC):
     """
@@ -73,22 +77,29 @@ class BaseScrapStateMachine(ABC):
         log.debug('Starting Mission 🫡')
         self.date_range = Config().date_range
         try:
-            load_dotenv()
-            # Initialize Chrome driver with project-relative path
             log.debug("🔧 Initializing Chrome driver")
-            # Get the chromedriver path from the environment variable
-            driver_path = os.getenv('CHROMEDRIVER_PATH')
-            chrome_path = os.getenv("CHROME_PATH")
-            service = Service(driver_path)
             options = Options()
-            options.binary_location = chrome_path
+            
+            # Headless mode
+            options.add_argument("--headless=new")
+            
+            # Security and stability
             options.add_argument("--no-sandbox")
             options.add_argument("--disable-dev-shm-usage")
-            options.add_argument("--headless")
+            
+            # Performance optimization
             options.add_argument("--disable-gpu")
-            options.add_argument("--disable-software-rasterizer")
-            self.driver = webdriver.Chrome(service=service, options=options)
-            self.config.chrome_driver = self.driver  # Set reference in config
+            options.add_argument("--disable-extensions")
+            options.add_argument("--disable-notifications")
+            
+            # Set viewport size (needed even in headless mode)
+            options.add_argument("--window-size=1920,1080")
+            
+            self.driver = webdriver.Chrome(
+                service=Service(get_driver_path()),
+                options=options
+            )
+            self.config.chrome_driver = self.driver
                 
         except Exception as e:
             log.error(f"❌ Failed to initialize scraper: {str(e)}")
