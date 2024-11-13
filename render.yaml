@@ -1,9 +1,0 @@
-services:
-  - type: web
-    name: my-web-service
-    env: python
-    buildCommand: |
-      apt-get update && \
-      apt-get install -y chromium-browser && \
-      chmod +x selenium_scrappers/chromedriver
-    startCommand: gunicorn app:app --bind 0.0.0.0:$PORT --workers 3
