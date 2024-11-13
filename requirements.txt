@@ -8,3 +8,4 @@ flask-jwt-extended
 gunicorn>=20.1.0
 transitions
 beautifulsoup4
+webdriver-manager
