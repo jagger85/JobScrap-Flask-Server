@@ -1,55 +1,40 @@
 from flask import Flask
-from flask_cors import CORS
 import os
 from dotenv import load_dotenv
 from logger import get_logger, set_log_level
-from server import sse_bp, listings_bp, logging_bp, fetch_listings_bp, health_bp
 import logging
 from config.jwt_config import init_jwt
+from config.server_config import ServerConfig
+from server.routes.app_blueprints import register_blueprints
+from flask_cors import CORS
 
 # Load environment variables
 load_dotenv()
 
-# Force production mode on Render
-ENV = 'production' if os.getenv('RENDER') else os.getenv('FLASK_ENV', 'development')
+# Flask application setup
+app = Flask(__name__)
+ENV = os.getenv('ENVIRONMENT', 'production')
+app.config['DEBUG'] = os.getenv('FLASK_DEBUG', '0') == '1'
+
+if ENV == 'production':
+    app.config.from_object('config.server_config.ProductionConfig')
+else:
+    app.config.from_object('config.server_config.DevelopmentConfig')
+
+# Initialize CORS before routes
+CORS(app, resources=app.config.get('CORS_RESOURCES'))
 
 # Initialize logging
 log = get_logger('Server')
 log_level = logging.DEBUG if ENV == 'development' else logging.INFO
 set_log_level(log_level)
 
-# Flask application setup
-app = Flask(__name__)
-
-# Config class to organize settings
-class Config:
-    HOST = os.getenv('BACKEND_HOST', '0.0.0.0')
-    PORT = int(os.getenv('PORT', 10000))
-    DEBUG = ENV == 'development'
-    ENV = ENV
-    CORS_RESOURCES = {
-        r"/*": {
-            "origins": "*",
-            "methods": ["GET", "POST", "OPTIONS"],
-            "allow_headers": ["Content-Type", "Authorization"],
-            "supports_credentials": True
-        }
-    }
-
-app.config.from_object(Config)
-
-# Configure CORS
-CORS(app, resources=app.config['CORS_RESOURCES'])
 
 # Initialize JWT
 init_jwt(app)
 
 # Register blueprints
-app.register_blueprint(health_bp)
-app.register_blueprint(fetch_listings_bp)
-app.register_blueprint(logging_bp)
-app.register_blueprint(listings_bp)
-app.register_blueprint(sse_bp)
+register_blueprints(app)
 
 # Error handling for common errors
 @app.errorhandler(404)
@@ -70,7 +55,7 @@ if ENV == 'development':
 
 if __name__ == '__main__':
     if ENV == 'development':
-        app.run(host=Config.HOST, port=Config.PORT, debug=True)
+        app.run(host=ServerConfig.HOST, port=ServerConfig.PORT, debug=True)
     else:
         print("🚀 Production mode detected. Please use Gunicorn to run this application.")
         raise RuntimeError("Use gunicorn to run in production")
