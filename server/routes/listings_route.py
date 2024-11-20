@@ -16,7 +16,7 @@ from constants.platforms import Platforms
 
 listings_bp = Blueprint("listings", __name__)
 
-@listings_bp.route("/listings", methods=["OPTIONS"])
+@listings_bp.route("/api/listings", methods=["OPTIONS"])
 def listings_options():
     """
     Handle CORS preflight requests for the listings endpoint.
@@ -42,7 +42,7 @@ def listings_options():
     response.headers.add("Access-Control-Allow-Origin", "*")
     return response
 
-@listings_bp.route("/listings", methods=["POST"])
+@listings_bp.route("/api/listings", methods=["POST"])
 @jwt_required()
 def create_listing():
     """

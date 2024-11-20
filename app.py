@@ -26,7 +26,7 @@ CORS(app, resources=app.config.get('CORS_RESOURCES'))
 
 # Initialize logging
 log = get_logger('Server')
-log_level = logging.DEBUG if ENV == 'development' else logging.INFO
+log_level = logging.DEBUG if ENV == 'development' else logging.DEBUG
 set_log_level(log_level)
 
 

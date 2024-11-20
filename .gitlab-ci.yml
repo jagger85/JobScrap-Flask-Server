@@ -1,0 +1,92 @@
+# Server Deployment Configuration (.gitlab-ci.yml)
+
+image: python:latest
+
+variables:
+  REMOTE_PATH: "/home/dev/server"
+  GIT_SSH_COMMAND: "ssh -i ~/.ssh/gitlabkey"
+  SSH_OPTS: "-o StrictHostKeyChecking=no"
+
+deploy:
+  stage: deploy
+  script:
+    # Setup SSH
+    - mkdir -p ~/.ssh
+    - chmod 700 ~/.ssh
+    - echo "$SSH_PRIVATE_KEY" > ~/.ssh/id_rsa
+    - chmod 600 ~/.ssh/id_rsa
+    - ssh-keyscan -H $REMOTE_HOST >> ~/.ssh/known_hosts
+    - |
+      ssh $SSH_OPTS $REMOTE_USER@$REMOTE_HOST << 'EOF'
+        set -e  # Exit on any error
+        
+        echo "[$(date)] Starting server deployment..."
+        
+        # Navigate to server directory
+        cd /home/dev/server || {
+          echo "Error: Failed to change to server directory"
+          exit 1
+        }
+        
+        # Setup conda environment
+        echo "Setting up conda environment..."
+        source ~/miniconda3/etc/profile.d/conda.sh || {
+          echo "Error: Failed to source conda"
+          exit 1
+        }
+        
+        conda activate jobsweep || {
+          echo "Error: Failed to activate jobsweep environment"
+          exit 1
+        }
+        
+        # Configure Git
+        echo "Configuring Git..."
+        git config --global url."git@gitlab.com:".insteadOf "https://gitlab.com/"
+        git remote set-url origin git@gitlab.com:Jagger85/uplift-jobsweep-server.git
+        
+        # Add GitLab to known hosts
+        ssh-keyscan -H gitlab.com >> ~/.ssh/known_hosts 2>/dev/null
+        
+        # Pull changes
+        echo "Pulling latest changes..."
+        git pull origin staging || {
+          echo "Error: Failed to pull changes from repository"
+          exit 1
+        }
+        
+        # Install requirements
+        echo "Installing Python requirements..."
+        pip install -r requirements.txt --exists-action=i || {
+          echo "Error: Failed to install requirements"
+          exit 1
+        }
+        
+        # Restart services
+        echo "Restarting server service..."
+        if ! sudo systemctl restart sweeper-server.service; then
+          echo "Error: Failed to restart sweeper-server service"
+          echo "Service status:"
+          sudo systemctl status sweeper-server.service
+          exit 1
+        fi
+        
+        # Check service status
+        echo "Checking service status..."
+        sudo systemctl status sweeper-server.service
+        
+        # Restart nginx
+        echo "Restarting nginx..."
+        if ! sudo systemctl restart nginx; then
+          echo "Error: Failed to restart nginx"
+          echo "Nginx status:"
+          sudo systemctl status nginx
+          exit 1
+        fi
+        
+        echo "[$(date)] Server deployment completed successfully"
+      EOF
+  environment: production
+  rules:
+    - if: $CI_COMMIT_BRANCH == "staging"  # Only run on staging branch
+

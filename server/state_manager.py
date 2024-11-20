@@ -65,20 +65,17 @@ class StateManager:
 
         Returns:
             None: States are initialized internally.
-
-        Example:
-            >>> manager = StateManager()
-            >>> manager.initialize_platform_states()
-            >>> states = manager.get_all_states()
-            >>> assert all(state == PlatformStates.IDLE for state in states.values())
         """
+        # First set all platforms to IDLE
         for platform in Platforms:
             self.platform_states[platform] = PlatformStates.IDLE
-            self.sse_observer.notify_platform_state(platform, PlatformStates.IDLE)
-            
+        
+        # Then notify once with all states
+        self.sse_observer.notify_platform_state(self)
+    
     def set_platform_state(self, platform: Platforms, state: PlatformStates):
         """
-        Update the state of a specific platform.
+        Update the state of a specific platform and notify all platform states.
 
         This method changes the state of a platform and notifies observers
         through SSE of the state change.
@@ -97,7 +94,7 @@ class StateManager:
             >>> assert states[Platforms.INDEED] == PlatformStates.RUNNING
         """
         self.platform_states[platform] = state
-        self.sse_observer.notify_platform_state(platform, state)
+        self.sse_observer.notify_platform_state(self)
     
     def get_all_states(self):
         """

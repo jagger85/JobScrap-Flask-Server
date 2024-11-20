@@ -88,7 +88,6 @@ class Operation:
             >>> listings = operation._handle_platform(Platforms.JOBSTREET)
         """
         self.log.info(f"Starting to collect jobs from {platform.value}")
-        self.state_manager.set_platform_state(platform, PlatformStates.PROCESSING)
         
         handler_info = self.platform_handlers.get(platform)
         if not handler_info:
@@ -106,7 +105,6 @@ class Operation:
             else:
                 self.log.info(f"No jobs found on {platform.value} for your search criteria")
                 
-            self.state_manager.set_platform_state(platform, PlatformStates.FINISHED)
             return listings
             
         except Exception as e:

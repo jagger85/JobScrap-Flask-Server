@@ -12,13 +12,13 @@ class DevelopmentConfig(ServerConfig):
     DEBUG = True
     ENV = 'development'
     CORS_RESOURCES = {
-        r"/jobsweep-sse": {  # Specific route for SSE
+        r"/*": {  # Changed from /jobsweep-sse to /* to cover all routes
             "origins": [
                 "http://localhost:3000",
                 "http://127.0.0.1:3000",
                 "http://192.168.0.2:3000",
             ],
-            "methods": ["GET", "POST", "OPTIONS"],
+            "methods": ["GET", "POST"],
             "allow_headers": ["Content-Type", "Authorization"],
             "expose_headers": ["Content-Type", "Authorization"],
             "supports_credentials": True,

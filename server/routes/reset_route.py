@@ -16,7 +16,7 @@ from flask_jwt_extended import jwt_required
 reset_bp = Blueprint("reset", __name__)
 
 # Route to handle preflight requests for CORS
-@reset_bp.route("/reset", methods=["OPTIONS", "GET"])
+@reset_bp.route("/api/reset", methods=["OPTIONS", "GET"])
 @jwt_required()
 def reset():
     """
