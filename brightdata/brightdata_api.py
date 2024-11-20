@@ -170,7 +170,7 @@ class BrightDataClient:
                 error_message = data.get("error_message")
                 return {
                     "status": "failed",
-                    "message": f"Snapshot processing failed: {error_message}",
+                    "message": f"Brightdata failed: {error_message}",
                 }
             else:
                 return {"status": "unknown", "message": f"Unknown status: {status}"}

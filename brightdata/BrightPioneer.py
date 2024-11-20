@@ -68,8 +68,11 @@ class BrightPioneer:
         global platform
         if self.params.__class__.__name__ == 'IndeedParams':
             platform = Platforms.INDEED
+
         elif self.params.__class__.__name__ == 'LinkedInParams':
             platform = Platforms.LINKEDIN
+
+        self.state_manager.set_platform_state(platform, PlatformStates.PROCESSING)
 
         global log
         log = get_logger(platform_name)
@@ -182,11 +185,13 @@ class BrightPioneer:
 
     def on_enter_sending_result(self, processed_data):
         log.debug("🎉🎉🎉🎉 we reached the final stage!")
+        self.state_manager.set_platform_state(platform, PlatformStates.FINISHED)
         self.final_listings = processed_data
 
     def on_enter_error(self, msg):
         self.state_manager.set_platform_state(platform, PlatformStates.ERROR)
         log.error(msg)
+        return []
 
     def process_linkedIn_snapshot(self, snapshot):
         """
@@ -223,7 +228,8 @@ class BrightPioneer:
             )
             processed_listings.append(processed_listing)
 
-        log.info(f"Received {len(processed_listings)} LinkedIn listings")
+        log.info(f"Total listings found on {platform_name}: {len(processed_listings)}")
+
         return processed_listings
 
     def parse_date(self, date_str):

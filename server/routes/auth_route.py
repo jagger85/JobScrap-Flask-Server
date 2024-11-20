@@ -15,7 +15,7 @@ from dotenv import load_dotenv
 
 logging_bp = Blueprint("logging", __name__)
 
-@logging_bp.route("/login", methods=["POST"])
+@logging_bp.route("/api/login", methods=["POST"])
 def login():
     """
     Handle user login requests and generate JWT tokens.

@@ -41,6 +41,8 @@ class KalibrrAPIClient:
 
         self.state_manager = StateManager()
         self.log.info("Retrieving job listings from Kalibrr")
+        self.state_manager.set_platform_state(Platforms.KALIBRR, PlatformStates.PROCESSING)
+
         
         if date_range:
             self.start_date, self.end_date = self.get_date_range(date_range)
@@ -112,15 +114,17 @@ class KalibrrAPIClient:
             
             if not listings:
                 self.log.warning("No job listings found for the specified criteria in Kalibrr")
+                self.state_manager.set_platform_state(Platforms.KALIBRR, PlatformStates.FINISHED)                
                 return listings
             
             # Return the snapshot
             try:
+                self.state_manager.set_platform_state(Platforms.KALIBRR, PlatformStates.FINISHED)
                 self.log.info("Finished gathering job listings from Kalibrr")
                 return listings
                 
             except Exception as e:
-                self.log.error(f"Failed to store job listings snapshot: {str(e)}")
+                self.log.debug(f"Failed to store job listings snapshot: {str(e)}")
                 self.state_manager.set_platform_state(Platforms.KALIBRR, PlatformStates.ERROR)
                 raise
             
@@ -165,6 +169,7 @@ class KalibrrAPIClient:
                 
                 if not listings:
                     self.log.debug("No more listings found")
+                    self.log.warning("No listings found on Kalibrr")
                     break
                     
                 filtered_listings = []
@@ -190,11 +195,11 @@ class KalibrrAPIClient:
                 offset += limit
                 
             except Exception as e:
-                self.log.error(f"Error while fetching batch: {str(e)}")
+                self.log.debug(f"Error while retrieving Kalibrr job listings: {str(e)}")
                 self.state_manager.set_platform_state(Platforms.KALIBRR, PlatformStates.ERROR)
                 raise
             
-        self.log.debug(f"Total listings retrieved: {len(all_listings)}")
+        self.log.info(f"Total listings found on Kalibrr: {len(all_listings)}")
 
         return all_listings
 

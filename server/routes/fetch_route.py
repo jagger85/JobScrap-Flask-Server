@@ -16,7 +16,7 @@ from config.config import Config
 fetch_listings_bp = Blueprint("fetch_listings", __name__)
 
 # Route to handle preflight requests for CORS
-@fetch_listings_bp.route("/fetch-listings", methods=["OPTIONS", "GET"])
+@fetch_listings_bp.route("/api/fetch-listings", methods=["OPTIONS", "GET"])
 @jwt_required()
 def listings_options():
     """

@@ -44,32 +44,22 @@ class SSEObserver:
         self.sse_handler = sse_handler
         self.logger = get_logger("SSEObserver")
 
-    def notify_platform_state(self, platform: Platforms, new_state: PlatformStates):
+    def notify_platform_state(self, state_manager):
         """
-        Notify clients about platform state changes.
+        Notify clients about all platform state changes.
 
-        This method queues a platform state update message to be sent via SSE
-        to all connected clients. This is a special case handled separately
-        from the general logging system.
+        This method queues a message containing all platform states to be sent via SSE
+        to all connected clients.
 
         Args:
-            platform (Platforms): The platform enum value that changed state.
-            new_state (PlatformStates): The new state enum value for the platform.
+            state_manager (StateManager): The state manager instance to retrieve all states.
 
         Returns:
             None: Message is queued for transmission via SSE.
-
-        Example:
-            >>> observer = SSEObserver(sse_handler)
-            >>> observer.notify_platform_state(
-            >>>     Platforms.JOBSTREET,
-            >>>     PlatformStates.COMPLETED
-            >>> )
         """
+        all_states = state_manager.get_all_states()
         message = {
             "type": MessageType.PLATFORM_STATE.value,
-            "platforms": {
-                platform.value: new_state.value
-            }
+            "platforms": {platform.value: state.value for platform, state in all_states.items()}
         }
         self.sse_handler.queue.put(message)

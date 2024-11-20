@@ -35,6 +35,8 @@ class JobstreetScrapperMachine(BaseScrapStateMachine):
         
         
         # Set initial state to PROCESSING when starting scraping
+        self.state_manager.set_platform_state(Platforms.JOBSTREET, PlatformStates.PROCESSING)
+
         self.driver.get(self.build_jobstreet_url())
         log.info("Retrieving job listings from Jobstreet, this may take a few minutes…")
 
@@ -117,7 +119,7 @@ class JobstreetScrapperMachine(BaseScrapStateMachine):
         """
         try:
             if not hasattr(self, 'listings') or not self.listings:
-                log.error("No listings found to process")
+                log.warning("No listings found on Jobstreet")
                 self.state_manager.set_platform_state(Platforms.JOBSTREET, PlatformStates.ERROR)
                 return []
 
@@ -138,7 +140,9 @@ class JobstreetScrapperMachine(BaseScrapStateMachine):
                 processed_listings.append(processed_listing)
 
             # Set state to FINISHED after successful processing
-            log.info('Finished gathering job listings from Jobstreet')
+            self.state_manager.set_platform_state(Platforms.JOBSTREET, PlatformStates.FINISHED)
+            log.info(f"Total listings found on Jobstreet: {len(processed_listings)}")
+
             return processed_listings
 
         except Exception as e:

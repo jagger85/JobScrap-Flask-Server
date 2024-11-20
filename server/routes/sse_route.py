@@ -8,7 +8,7 @@ import time
 
 sse_bp = Blueprint('sse', __name__)
 
-@sse_bp.route('/jobsweep-sse')
+@sse_bp.route('/api/jobsweep-sse')
 @jwt_required()
 def sse_stream():
     """Stream server-sent events for job updates.
@@ -52,11 +52,15 @@ def sse_stream():
             logger.debug("SSE connection closed")
             pass
 
-    return Response(
+    response = Response(
         stream_with_context(event_stream()), 
         content_type='text/event-stream',
         headers={
             'Cache-Control': 'no-cache',
-            'X-Accel-Buffering': 'no'
+            'X-Accel-Buffering': 'no',
+            'Connection': 'keep-alive',
+            'Content-Encoding': 'identity',  # Prevent compression
+            'Transfer-Encoding': 'identity'  # Prevent chunked encoding
         }
     )
+    return response

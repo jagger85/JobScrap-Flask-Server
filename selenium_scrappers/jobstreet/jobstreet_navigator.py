@@ -76,6 +76,7 @@ class JobstreetNavigator:
                     if listing_details:
                         listing_details['listing_id'] = listing_id
                         self.job_listings.append(listing_details)
+                        log.info(f"Retrieved {len(self.job_listings)} listings from Jobstreet")
                         log.debug(f"Successfully collected details for listing {listing_id}")
                     else:
                         log.error(f"Failed to collect details for listing {listing_id}")
@@ -105,7 +106,7 @@ class JobstreetNavigator:
 
                 # Update self.page with the new URL
                 self.page = new_url
-                log.debug(f"Navigated to page {next_page}")
+                log.info(f"Navigated to page {next_page}")
             
             log.info(f"Retrieved {len(self.job_listings)} listings for Jobstreet")
             return self.job_listings

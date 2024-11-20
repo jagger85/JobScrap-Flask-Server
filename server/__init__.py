@@ -6,6 +6,7 @@ from .routes.listings_route import listings_bp
 from .routes.auth_route import logging_bp
 from .routes.fetch_route import fetch_listings_bp
 from .routes.health_route import health_bp
+from .routes.reset_route import reset_bp
 
 __all__ = [
     'Operation',
@@ -15,5 +16,6 @@ __all__ = [
     'listings_bp',
     'logging_bp',
     'fetch_listings_bp',
-    'health_bp'
+    'health_bp',
+    'reset_bp'
 ]
