@@ -1,11 +1,8 @@
-import os
-from dotenv import load_dotenv
-
-load_dotenv()  
+from constants import environment
 
 class ServerConfig:
-    HOST = os.getenv('BACKEND_HOST', '0.0.0.0')
-    PORT = int(os.getenv('PORT', 10000))
+    HOST = environment['backend_host']
+    PORT = int(environment['backend_port'])
     CORS_RESOURCES = {...}  # Common CORS settings
 
 class DevelopmentConfig(ServerConfig):
@@ -34,8 +31,8 @@ class ProductionConfig(ServerConfig):
             "origins": [
                 "http://127.0.0.1",     
                 "https://127.0.0.1",
-                f"http://{os.getenv('REMOTE_IP')}",      
-                f"https://{os.getenv('REMOTE_IP')}",
+                f"http://{environment['remote_ip']}",      
+                f"https://{environment['remote_ip']}",
                        
             ],
             "methods": ["GET", "POST", "OPTIONS"],

@@ -1,20 +1,16 @@
 from flask import Flask
-import os
-from dotenv import load_dotenv
 from logger import get_logger, set_log_level
 import logging
 from config.jwt_config import init_jwt
 from config.server_config import ServerConfig
 from server.routes.app_blueprints import register_blueprints
 from flask_cors import CORS
-
-# Load environment variables
-load_dotenv()
+from constants import environment
 
 # Flask application setup
 app = Flask(__name__)
-ENV = os.getenv('ENVIRONMENT', 'production')
-app.config['DEBUG'] = os.getenv('FLASK_DEBUG', '0') == '1'
+ENV = environment['environment']
+app.config['DEBUG'] = environment['flask_debug']
 
 if ENV == 'production':
     app.config.from_object('config.server_config.ProductionConfig')

@@ -2,7 +2,7 @@ import requests
 import os
 from models.IndeedParams import IndeedParams
 from models.LinkedInParams import LinkedInParams
-from dotenv import load_dotenv
+from constants import environment
 
 
 class BrightDataClient:
@@ -34,8 +34,7 @@ class BrightDataClient:
         global log
         log = logger
 
-        load_dotenv()
-        API_KEY = os.getenv("BRIGHT")
+        API_KEY = environment['bright_key']
 
         global BASE_URL
         BASE_URL = "https://api.brightdata.com/datasets/v3"

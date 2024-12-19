@@ -10,8 +10,7 @@ Attributes:
 
 from flask import Blueprint, jsonify, request
 from flask_jwt_extended import create_access_token
-import os
-from dotenv import load_dotenv
+from constants import environment
 
 logging_bp = Blueprint("logging", __name__)
 
@@ -63,9 +62,8 @@ def login():
     if not username or not password:
         return jsonify({"msg": "Missing username or password"}), 400
 
-    load_dotenv()
-    frontUser = os.getenv("FRONT_USER")
-    frontPass = os.getenv("FRONT_PASSWORD")
+    frontUser = environment['user']
+    frontPass = environment['password']
 
     # Verify user credentials against environment variables
     if username == frontUser and password == frontPass:
