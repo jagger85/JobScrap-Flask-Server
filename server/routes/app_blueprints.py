@@ -1,9 +1,14 @@
-from server import sse_bp, listings_bp, logging_bp, fetch_listings_bp, health_bp, reset_bp
+from server import stop_bp, sse_bp, listings_bp, logging_bp, fetch_listings_bp, health_bp, reset_bp
 
 def register_blueprints(app):
-    app.register_blueprint(health_bp)
-    app.register_blueprint(fetch_listings_bp)
-    app.register_blueprint(logging_bp)
-    app.register_blueprint(listings_bp)
-    app.register_blueprint(sse_bp)
-    app.register_blueprint(reset_bp)
+    blueprints = [
+        sse_bp,
+        listings_bp,
+        logging_bp,
+        fetch_listings_bp,
+        health_bp,
+        reset_bp,
+        stop_bp
+    ]
+    for blueprint in blueprints:
+        app.register_blueprint(blueprint)

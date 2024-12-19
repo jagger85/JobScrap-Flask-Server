@@ -4,7 +4,7 @@ image: python:latest
 
 variables:
   REMOTE_PATH: "/home/dev/server"
-  GIT_SSH_COMMAND: "ssh -i ~/.ssh/gitlabkey"
+  GIT_SSH_COMMAND: "ssh -i ~/.ssh/deploy_key_jobsweep"
   SSH_OPTS: "-o StrictHostKeyChecking=no"
 
 deploy:
@@ -40,11 +40,7 @@ deploy:
           exit 1
         }
         
-        # Configure Git
-        echo "Configuring Git..."
-        git config --global url."git@gitlab.com:".insteadOf "https://gitlab.com/"
-        git remote set-url origin git@gitlab.com:Jagger85/uplift-jobsweep-server.git
-        
+      
         # Add GitLab to known hosts
         ssh-keyscan -H gitlab.com >> ~/.ssh/known_hosts 2>/dev/null
         

@@ -88,8 +88,9 @@ def create_listing():
         >>> headers = {'Authorization': 'Bearer your_jwt_token'}
         >>> data = {
         >>>     'platforms': ['linkedin', 'indeed'],
-        >>>     'dateRange': 'PAST_WEEK'
-        >>> }
+        >>>     'dateRange': 'PAST_WEEK',
+        >>>     'keywords': 'python, data engineer'
+        >>> }   
         >>> response = requests.post('/listings', json=data, headers=headers)
         >>> print(response.json())
         {'message': 'Scraping operation started successfully', 'status': 'processing'}
@@ -109,7 +110,7 @@ def create_listing():
 
         platforms = data["platforms"]
         date_range_key = data["dateRange"]
-
+        keywords = data.get("keywords", None)
         current_app.logger.debug("Date range key: %s", date_range_key)
 
         # Validate platforms is an array
@@ -131,7 +132,7 @@ def create_listing():
             return jsonify({"error": "Invalid dateRange value"}), 400
 
         # Start the operation with enum members
-        scrapping_operation = ops(date_range_enum, platform_enums)
+        scrapping_operation = ops(date_range_enum, platform_enums, keywords)
         scrapping_operation.scrape_all_sites()
 
         return jsonify({

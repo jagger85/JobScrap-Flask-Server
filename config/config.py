@@ -24,7 +24,7 @@ class Config:
 
     Example:
         >>> config = Config()
-        >>> config.keywords = ["python", "developer"]
+        >>> config.keywords = "python developer"
         >>> config.init_chrome_driver(headless=True)
     """
 
@@ -45,7 +45,7 @@ class Config:
         instance._date_range = DateRange.PAST_24_HOURS
 
         # Keywords for search
-        instance._keywords = []
+        instance._keywords = ""
 
         # Storage configuration - already using StorageType enum
         instance._storage_type = StorageType.JSON
@@ -58,8 +58,8 @@ class Config:
         instance._platforms = []
 
         # Platform URLs
-        instance._kalibrr_url = "https://www.kalibrr.com/home/co/Philippines/i/it-and-software?sort=Freshness"   
-        instance._jobstreet_url = "https://www.jobstreet.com.ph/jobs/in-Philippines"
+        instance._kalibrr_url = "https://www.kalibrr.com/home/co/Philippines/i/it-and-software?sort=Freshness"
+        instance._jobstreet_url = "https://ph.jobstreet.com"
 
     # Date range properties
     @property
@@ -84,25 +84,25 @@ class Config:
 
     # Keywords properties
     @property
-    def keywords(self) -> List[str]:
+    def keywords(self) -> str:
         """
-        Get the list of search keywords.
+        Get the search keywords string.
 
         This property contains the keywords used for job searching across platforms.
 
         Returns:
-            List[str]: List of keyword strings for job search.
+            str: Space-separated keywords for job search.
 
         Example:
             >>> config = Config()
-            >>> config.keywords = ["python", "developer"]
+            >>> config.keywords = "python developer"
             >>> print(config.keywords)
-            ["python", "developer"]
+            "python developer"
         """
         return self._keywords
 
     @keywords.setter
-    def keywords(self, keywords: List[str]):
+    def keywords(self, keywords: str):
         self._keywords = keywords
 
     # Storage properties
@@ -208,11 +208,11 @@ class Config:
     def listings(self):
         """
         Get the current job listings from the latest scraping operation.
-        
+
         Returns:
             list: List of job listings or None if no scraping has been performed
         """
-        if not hasattr(self, '_listings'):
+        if not hasattr(self, "_listings"):
             self._listings = None
         return self._listings
 
@@ -226,13 +226,13 @@ class Config:
         Called after completing an operation to prepare for the next one.
         """
         # Initialize state management using the same pattern as Operation class
-        
+
         # Reset platform states and notify clients
-        
+
         # Reset all other values
         self._chrome_driver = None
         self._date_range = DateRange.PAST_24_HOURS
-        self._keywords = []
+        self._keywords = ""
         self._storage_type = StorageType.JSON
         self._storage = StorageFactory.get_storage_handler(self._storage_type)
         self._user_id = None

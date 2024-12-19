@@ -6,6 +6,7 @@ from constants.date_range import DateRange
 dataset_id = "gd_l4dx9j9sscpvs7no2"
 platform_name = "Indeed"
 
+
 @dataclass(frozen=True)
 class IndeedParams:
     """
@@ -30,12 +31,21 @@ class IndeedParams:
         >>> params = IndeedParams(DateRange.PAST_WEEK)
         >>> search_params = params.to_dict()
     """
+
+    date_range: DateRange
     location: str = field(default="philippines", init=False)
     keywords: str = field(default="software developer", init=False)
     country: str = field(default="PH", init=False)
     domain: str = field(default="ph.indeed.com", init=False)
-    date_range: DateRange
-    _time_range: str = field(init=False)
+    date_posted: str = field(init=False)
+
+    def __init__(self, date_range: DateRange, keywords: str = None):
+        object.__setattr__(self, 'date_range', date_range)
+        object.__setattr__(self, 'date_posted', self._convert_date_range(date_range))
+        
+        if keywords and isinstance(keywords, str) and keywords.strip():
+            object.__setattr__(self, 'keywords', keywords.strip())
+        # If keywords is None or empty, the default value from field() will be used
 
     def __post_init__(self):
         """
@@ -48,9 +58,11 @@ class IndeedParams:
             ValueError: If location or keywords are empty or invalid strings.
         """
         log = get_logger("Indeed")
-        
-        # Create a dict object to store the frozen dataclass attributes
-        object.__setattr__(self, '_time_range', self._convert_date_range(self.date_range))
+
+        # Convert date range to Indeed's format
+        object.__setattr__(
+            self, "date_posted", self._convert_date_range(self.date_range)
+        )
 
         if not isinstance(self.location, str) or not self.location.strip():
             log.warning("Location is empty")
@@ -59,6 +71,15 @@ class IndeedParams:
         if not isinstance(self.keywords, str) or not self.keywords.strip():
             log.warning("Keywords are empty")
             raise ValueError("Keywords must be a non-empty string")
+        
+        if self.date_range == DateRange.PAST_15_DAYS:
+            log.warning(
+                "Indeed does not provide 15 days search, searching for 14 days instead"
+            )
+        if self.date_range == DateRange.PAST_MONTH:
+            log.warning(
+                "Indeed does not provide a month search, searching for last 14 days instead"
+            )
 
     @staticmethod
     def _convert_date_range(date_range: DateRange) -> str:
@@ -78,12 +99,12 @@ class IndeedParams:
             'Last 7 days'
         """
         date_range_mapping = {
-            DateRange.PAST_24_HOURS: 'Last 24 hours',
-            DateRange.PAST_WEEK: 'Last 7 days',
-            DateRange.PAST_15_DAYS: 'Last 14 days',
-            DateRange.PAST_MONTH: 'Last 14 days',  # Adapted for Indeed's limitations
+            DateRange.PAST_24_HOURS: "Last 24 hours",
+            DateRange.PAST_WEEK: "Last 7 days",
+            DateRange.PAST_15_DAYS: "Last 14 days",
+            DateRange.PAST_MONTH: "Last 14 days",  # Adapted for Indeed's limitations
         }
-        return date_range_mapping.get(date_range, 'Unknown')
+        return date_range_mapping[date_range]
 
     def to_dict(self) -> Dict:
         """
@@ -104,7 +125,7 @@ class IndeedParams:
             "domain": self.domain,
             "location": self.location,
             "keyword_search": self.keywords,
-            "date_posted": self._time_range
+            "date_posted": self.date_posted,
         }
 
     def get_dataset_id(self):
@@ -119,7 +140,7 @@ class IndeedParams:
             >>> dataset_id = params.get_dataset_id()
         """
         return dataset_id
-    
+
     def get_platform_name(self):
         """
         Retrieve the platform identifier.
@@ -134,7 +155,7 @@ class IndeedParams:
             'Indeed'
         """
         return platform_name
-    
+
     def __dict__(self):
         """
         Provide dictionary representation of parameters.
@@ -143,3 +164,19 @@ class IndeedParams:
             Dict: Dictionary containing all search parameters.
                 Equivalent to to_dict() method output.
         """
+
+    def __repr__(self):
+        """
+        Custom string representation of IndeedParams.
+
+        Returns:
+            str: A clean string representation showing just the values.
+        """
+        return (
+            f"IndeedParams("
+            f"location='{self.location}', "
+            f"keyword_search='{self.keywords}', "
+            f"country='{self.country}', "
+            f"domain='{self.domain}', "
+            f"date_posted='{self.date_posted}')"
+        )

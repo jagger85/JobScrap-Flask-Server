@@ -112,6 +112,11 @@ class BrightDataClient:
             }
 
         except requests.exceptions.RequestException as e:
+            if e.response.status_code == 401:
+                return {
+                    "status": "error",
+                    "message": "Authentication failed - please check your API key",
+                }
             return {
                 "status": "error",
                 "message": f"Failed to connect to the API: {str(e)}",
@@ -222,49 +227,39 @@ class BrightDataClient:
             >>> print(result)
             {'status': 'success', 'message': 'Snapshot retrieved successfully', 'data': {...}}
         """
-        # Use the provided snapshot_id if given, otherwise use the current snapshot_id
         snapshot_id = snapshot_id or self.snapshot_id
 
         if not snapshot_id:
             return {"status": "error", "message": "No snapshot ID provided or set"}
 
-        URL = f"{BASE_URL}/snapshot/{snapshot_id}"
+        URL = f"{BASE_URL}/snapshot/{snapshot_id}?format=json"  # Add format parameter
 
-        params = {
-            "format": "json",
-        }
         try:
-            response = requests.get(
-                URL, headers=self.headers, params=params, timeout=60
-            )
+            response = requests.get(URL, headers=self.headers, timeout=60)
+            log.debug(f"API Response Status Code: {response.status_code}")
+            log.debug(f"API Response Text: {response.text}")
+            
+            # Handle empty snapshot case
+            if response.status_code == 400 and "Snapshot is empty" in response.text:
+                return {
+                    "status": "success",
+                    "message": "No results found",
+                    "snapshot": []
+                }
+            
+            # Handle successful response with data
             response.raise_for_status()
-
-            snapshot = response.json()
-
             return {
                 "status": "success",
                 "message": "Snapshot retrieved successfully",
-                "snapshot": snapshot
-            }
-        except requests.exceptions.RequestException as e:
-            # Handle network-related errors
-            return {
-                "status": "error",
-                "message": f"Failed to connect to the API: {str(e)}",
-            }
-        except ValueError as e:
-            # Handle JSON decoding errors
-            return {
-                "status": "error",
-                "message": f"Error processing API response: {str(e)}",
-            }
-        except Exception as e:
-            # Catch any other unexpected errors
-            return {
-                "status": "error",
-                "message": f"An unexpected error occurred: {str(e)}",
+                "snapshot": response.json()
             }
 
+        except requests.exceptions.RequestException as e:
+            return {
+                "status": "error",
+                "message": f"Failed to connect to the API: {str(e)}"
+            }
     # Request a list of snapshots requested for a specific dataset
     def retrieve_snapshots_list(self, dataset_id):
         """
