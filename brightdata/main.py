@@ -1,6 +1,5 @@
 from brightdata.brightdata_api import BrightDataClient as api
-from models.IndeedParams import IndeedParams
-from models.LinkedInParams import LinkedInParams
+from models import IndeedParams, LinkedInParams
 from data_handler.storage_factory import StorageFactory
 from data_handler.storage_type import StorageType
 import logging

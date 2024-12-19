@@ -1,6 +1,6 @@
 from transitions import Machine
 from abc import ABC, abstractmethod
-from models.JobListing import JobListing
+from models import JobListing
 from typing import List
 from config.config import Config
 from server.state_manager import StateManager

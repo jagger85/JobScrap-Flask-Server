@@ -1,6 +1,6 @@
 from abc import ABC, abstractmethod
 import json
-from models.JobListing import JobListing
+from models import JobListing
 
 class BaseDataHandler(ABC):
     """

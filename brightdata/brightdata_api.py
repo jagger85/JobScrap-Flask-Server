@@ -1,7 +1,5 @@
 import requests
-import os
-from models.IndeedParams import IndeedParams
-from models.LinkedInParams import LinkedInParams
+from models import IndeedParams, LinkedInParams
 from constants import environment
 
 

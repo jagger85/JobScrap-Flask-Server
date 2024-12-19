@@ -9,8 +9,8 @@ from data_handler import StorageType
 from server.state_manager import StateManager
 from server.sse_observer import SSEObserver
 from constants.platform_states import PlatformStates
-from models.IndeedParams import IndeedParams
-from models.LinkedInParams import LinkedInParams
+from models import IndeedParams, LinkedInParams
+
 
 class Operation:
     """
