@@ -3,7 +3,7 @@ from logger import get_logger, set_log_level
 import logging
 from config.jwt_config import init_jwt
 from config.server_config import ServerConfig
-from server.routes.app_blueprints import register_blueprints
+from routes import register_blueprints
 from flask_cors import CORS
 from constants import environment
 
