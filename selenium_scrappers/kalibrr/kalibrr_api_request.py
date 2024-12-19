@@ -33,11 +33,11 @@ class KalibrrAPIClient:
         >>> listings = client.start()
     """
 
-    def __init__(self, date_range: DateRange = None):
+    def __init__(self, date_range: DateRange = None, keywords: str = None):
         self.log = get_logger("Kalibrr")
         self.base_url = "https://www.kalibrr.com/kjs/job_board/search"
         self.date_range = date_range
-        
+        self.keywords = keywords
 
         self.state_manager = StateManager()
         self.log.info("Retrieving job listings from Kalibrr")
@@ -224,20 +224,22 @@ class KalibrrAPIClient:
             f"Fetching listings with params - limit: {limit}, offset: {offset}, "
             f"start_date: {self.start_date}, end_date: {self.end_date}"
         )
-        
+
+        self.log.debug(f"Using keywords: {self.keywords}")
+
         params = {
             "limit": limit,
             "offset": offset,
             "country": "Philippines",
-            "function": "IT and Software",
             "sort_direction": "desc",
-            "sort_field": "activation_date"
+            "sort_field": "activation_date",
+            "function": "IT and Software",
         }
-        
-        if self.start_date:
-            params["start_date"] = self.start_date.isoformat()
-        if self.end_date:
-            params["end_date"] = self.end_date.isoformat()
+        if self.keywords:
+            params["text"] = self.keywords
+
+
+        self.log.debug(f"API request params: {params}")
         
         response = requests.get(self.base_url, params=params)
         self.log.debug(f"API response received with status code: {response.status_code}")
@@ -307,5 +309,5 @@ class KalibrrAPIClient:
             position=listing_data.get("function", "IT and Software"),
             salary=salary,
             description=clean_description,
-            url=f"https://www.kalibrr.com/c/{listing_data['company']['code']}/jobs/{listing_data['slug']}"
+            url=f"https://www.kalibrr.com/c/{listing_data['company']['code']}/jobs/{listing_data['id']}/{listing_data['slug']}"
         )

@@ -79,7 +79,7 @@ class JobstreetNavigator:
                         log.info(f"Retrieved {len(self.job_listings)} listings from Jobstreet")
                         log.debug(f"Successfully collected details for listing {listing_id}")
                     else:
-                        log.error(f"Failed to collect details for listing {listing_id}")
+                        log.debug(f"Failed to collect details for listing {listing_id}")
                     
                 
                 # Extract the base URL without the page parameter
@@ -112,7 +112,7 @@ class JobstreetNavigator:
             return self.job_listings
            
         except Exception as e:
-            log.error(f"Error in request_listings: {str(e)}")
+            log.debug(f"Error in request_listings: {str(e)}")
             return []
 
     def _get_listing_details(self, listing_id):
@@ -174,7 +174,7 @@ class JobstreetNavigator:
                     details['listing_date'] = self.driver.find_element(By.XPATH, "//span[contains(text(), 'Posted')]").text
                     details['job_link'] = self.driver.current_url
                 except NoSuchElementException as e:
-                    log.error(f"Error extracting element: {str(e)}")
+                    log.debug(f"Error extracting element: {str(e)}")
                     return None
                 
                 # Special handling for salary
@@ -193,19 +193,19 @@ class JobstreetNavigator:
                 
                 # Validate essential fields
                 if not all([details['title'], details['company'], details['description']]):
-                    log.error("Missing essential fields")
+                    log.debug("Missing essential fields")
                     return None
                     
                 log.debug("Successfully extracted job details")
                 return details
                 
             except Exception as wait_error:
-                log.error(f"Error waiting for or extracting details: {str(wait_error)}")
+                log.debug(f"Error waiting for or extracting details: {str(wait_error)}")
                 # Log the current page source for debugging
                 log.debug("Current page source:")
                 log.debug(self.driver.page_source[:500])  # First 500 chars
                 return None
                 
         except Exception as e:
-            log.error(f"Unexpected error getting listing details: {str(e)}")
+            log.debug(f"Unexpected error getting listing details: {str(e)}")
             return None

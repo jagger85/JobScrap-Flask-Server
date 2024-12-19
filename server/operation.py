@@ -33,10 +33,11 @@ class Operation:
         platform_handlers (dict): Mapping of platforms to their respective handler classes.
     """
 
-    def __init__(self, date_range: DateRange, platforms: list[Platforms]):
+    def __init__(self, date_range: DateRange, platforms: list[Platforms], keywords: str = None):
         self.config = Config()
         self.config.platforms = [platform.value for platform in platforms]
         self.config.date_range = date_range
+        self.config.keywords = keywords
         self.config.storage_type = StorageType.JSON
         self.listings = None
         
@@ -59,15 +60,14 @@ class Operation:
         self.platform_handlers = {}
         for platform in self.platforms:
             if platform == Platforms.JOBSTREET:
-                self.platform_handlers[platform] = (jobstreet_scrapper, None)
+                self.platform_handlers[platform] = (jobstreet_scrapper, {'keywords': self.config.keywords})
             elif platform == Platforms.KALIBRR:
-                self.platform_handlers[platform] = (KalibrrAPIClient, {'date_range': self.config.date_range})
+                self.platform_handlers[platform] = (KalibrrAPIClient, {'date_range': self.config.date_range, 'keywords': self.config.keywords})
             elif platform == Platforms.LINKEDIN:
-                self.platform_handlers[platform] = (BrightPioneer, {'params': LinkedInParams(date_range=self.config.date_range)})
+                self.platform_handlers[platform] = (BrightPioneer, {'params': LinkedInParams(date_range=self.config.date_range, keywords=self.config.keywords)})
             elif platform == Platforms.INDEED:
-                self.platform_handlers[platform] = (BrightPioneer, {'params': IndeedParams(date_range=self.config.date_range)})
-            # elif platform == Platforms.GOOGLE:
-            #     self.platform_handlers[platform] = None
+                self.platform_handlers[platform] = (BrightPioneer, {'params': IndeedParams(date_range=self.config.date_range, keywords=self.config.keywords)})
+
 
     def _handle_platform(self, platform: Platforms) -> list:
         """
@@ -147,7 +147,9 @@ class Operation:
         else:
             self.log.info("No job listings were found. Please try adjusting your search criteria")
             self.config.listings = []
-            return []
+            self.config.reset_to_defaults()
+            self.state_manager.initialize_platform_states()
+            return
 
     def get_listings(self):
         """

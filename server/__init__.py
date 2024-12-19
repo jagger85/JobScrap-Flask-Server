@@ -7,6 +7,7 @@ from .routes.auth_route import logging_bp
 from .routes.fetch_route import fetch_listings_bp
 from .routes.health_route import health_bp
 from .routes.reset_route import reset_bp
+from .routes.stop_route import stop_bp
 
 __all__ = [
     'Operation',
@@ -17,5 +18,6 @@ __all__ = [
     'logging_bp',
     'fetch_listings_bp',
     'health_bp',
-    'reset_bp'
+    'reset_bp',
+    'stop_bp'
 ]

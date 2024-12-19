@@ -7,6 +7,7 @@ from logger.logger import get_logger
 dataset_id = "gd_lpfll7v5hcqtkxl6l"
 platform_name = "LinkedIn"
 
+
 class TimeRange(Enum):
     """
     Enumeration of available time range filters for LinkedIn job searches.
@@ -17,6 +18,7 @@ class TimeRange(Enum):
         PAST_MONTH
         ANY_TIME
     """
+
     PAST_24_HOURS = "Past 24 hours"
     PAST_WEEK = "Past week"
     PAST_MONTH = "Past month"
@@ -34,6 +36,7 @@ class JobType(Enum):
         TEMPORARY
         VOLUNTEER
     """
+
     FULL_TIME = "Full-time"
     PART_TIME = "Part-time"
     CONTRACT = "Contract"
@@ -52,6 +55,7 @@ class ExperienceLevel(Enum):
         MID_SENIOR_LEVEL
         DIRECTOR
     """
+
     INTERNSHIP = "Internship"
     ENTRY_LEVEL = "Entry level"
     ASSOCIATE = "Associate"
@@ -68,6 +72,7 @@ class Remote(Enum):
         REMOTE
         HYBRID
     """
+
     ON_SITE = "On-site"
     REMOTE = "Remote"
     HYBRID = "Hybrid"
@@ -99,11 +104,17 @@ class LinkedInParams:
         >>> params = LinkedInParams(DateRange.PAST_WEEK)
         >>> search_params = params.to_dict()
     """
-    
+
     location: str = field(default="philippines", init=False)
     keywords: str = field(default="software development", init=False)
     country: str = field(default="PH", init=False)
-    date_range : DateRange 
+    date_range: DateRange
+
+    def __init__(self, date_range: DateRange, keywords: str = None):
+        object.__setattr__(self, 'date_range', date_range)
+        if keywords and isinstance(keywords, str) and keywords.strip():
+            object.__setattr__(self, 'keywords', keywords.strip())
+        # If keywords is None or empty, the default value from field() will be used
 
     def __post_init__(self):
         """
@@ -120,7 +131,7 @@ class LinkedInParams:
             automatically converted to PAST_WEEK.
         """
         log = get_logger("LinkedIn")
-        
+
         if not isinstance(self.location, str) or not self.location.strip():
             log.warning("Location is empty")
             raise
@@ -128,13 +139,13 @@ class LinkedInParams:
         if not isinstance(self.keywords, str) or not self.keywords.strip():
             log.warning("Keywords are empty")
             raise
-        
+
         if self.date_range == DateRange.PAST_15_DAYS:
-            log.warning('LinkedIn does not provide 2 weeks, searching for last week instead')
-            #TODO LinkedIn does not provide past 15 days
-            self.date_range == DateRange.PAST_WEEK
-            pass
-        
+            log.warning(
+                "LinkedIn does not provide 2 weeks search, searching for last week instead"
+            )
+            object.__setattr__(self, "date_range", DateRange.PAST_WEEK)
+
         # if self.job_type and not isinstance(self.job_type, JobType):
         #     log.warning(
         #         f"job_type must be an instance of JobType Enum, got {type(self.job_type)}"
@@ -168,8 +179,6 @@ class LinkedInParams:
             "country": self.country,
             "time_range": self.date_range.value,
         }
-    
-
 
     def get_dataset_id(self):
         """
@@ -183,7 +192,7 @@ class LinkedInParams:
             >>> dataset_id = params.get_dataset_id()
         """
         return dataset_id
-    
+
     def get_platform_name(self):
         """
         Retrieve the platform identifier.
@@ -198,7 +207,7 @@ class LinkedInParams:
             'LinkedIn'
         """
         return platform_name
-    
+
     def __dict__(self):
         """
         Provide dictionary representation of parameters.
@@ -208,3 +217,18 @@ class LinkedInParams:
                 Equivalent to to_dict() method output.
         """
         return self.to_dict()
+
+    def __repr__(self):
+        """
+        Custom string representation of LinkedInParams.
+
+        Returns:
+            str: A clean string representation showing just the values.
+        """
+        return (
+            f"LinkedInParams("
+            f"location='{self.location}', "
+            f"keyword='{self.keywords}', "
+            f"country='{self.country}', "
+            f"time_range='{self.date_range}')"
+        )

@@ -108,6 +108,7 @@ class BrightPioneer:
         Raises:
             None: All exceptions are caught and handled within the method.
         """
+        log.debug(self.params)
         try:
             response = client.request_snapshot(self.params)
             if response.get("status") == "success":
@@ -116,7 +117,7 @@ class BrightPioneer:
                 self.wait_data()
             elif response.get("status") == "error":
                 error_message = response.get("message", "Unknown error occurred")
-                log.error(f"Dataset request failed: {error_message}")
+                log.debug(f"Dataset request failed: {error_message}")
                 self.error_occurred(error_message)
             else:
                 log.warning(f'Unexpected response status: {response.get("status")}')
@@ -164,8 +165,12 @@ class BrightPioneer:
             result = client.retrieve_snapshot()
             if result["status"] == "success":
                 log.debug("Dataset retrieved successfully")
-
                 snapshot = result.get("snapshot", [])
+
+                if not snapshot:  # Handle empty snapshot case
+                    log.warning(f"No jobs found on {platform_name} for your search criteria")
+                    self.send_result([])
+                    return
 
                 log.debug(f"Retrieved {len(snapshot)} items from the dataset")
 
