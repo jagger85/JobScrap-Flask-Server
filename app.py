@@ -7,6 +7,7 @@ from routes import register_blueprints
 from flask_cors import CORS
 from constants import environment
 from typing import Type
+from services import MongoClient
 
 def create_app() -> Flask:
     """Factory pattern for Flask application"""
@@ -24,10 +25,13 @@ def create_app() -> Flask:
     log = get_logger('Server')
     set_log_level(getattr(logging, app.config['LOG_LEVEL']))
     
+    # Initialize MongoClient
+    MongoClient.get_db() 
+    
     # Register routes and error handlers
     register_blueprints(app)
     register_error_handlers(app)
-    
+
     return app
 
 def register_error_handlers(app: Flask) -> None:
