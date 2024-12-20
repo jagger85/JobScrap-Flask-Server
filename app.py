@@ -2,56 +2,50 @@ from flask import Flask
 from logger import get_logger, set_log_level
 import logging
 from config.jwt_config import init_jwt
-from config.server_config import ServerConfig
+from config.server_config import BaseConfig, DevelopmentConfig, ProductionConfig
 from routes import register_blueprints
 from flask_cors import CORS
 from constants import environment
+from typing import Type
 
-# Flask application setup
-app = Flask(__name__)
-ENV = environment['environment']
-app.config['DEBUG'] = environment['flask_debug']
+def create_app() -> Flask:
+    """Factory pattern for Flask application"""
+    app = Flask(__name__)
+    
+    # Load configuration
+    config_class: Type[BaseConfig] = ProductionConfig if environment['environment'] == 'production' else DevelopmentConfig
+    app.config.from_object(config_class())
+    
+    # Initialize extensions
+    CORS(app, resources=app.config['CORS_RESOURCES'])
+    init_jwt(app)
+    
+    # Setup logging
+    log = get_logger('Server')
+    set_log_level(getattr(logging, app.config['LOG_LEVEL']))
+    
+    # Register routes and error handlers
+    register_blueprints(app)
+    register_error_handlers(app)
+    
+    return app
 
-if ENV == 'production':
-    app.config.from_object('config.server_config.ProductionConfig')
-else:
-    app.config.from_object('config.server_config.DevelopmentConfig')
+def register_error_handlers(app: Flask) -> None:
+    """Register error handlers for the application"""
+    @app.errorhandler(404)
+    def page_not_found(e):
+        return {"error": "Resource not found", "code": 404}, 404
 
-# Initialize CORS before routes
-CORS(app, resources=app.config.get('CORS_RESOURCES'))
+    @app.errorhandler(500)
+    def internal_server_error(e):
+        log.error(f"Internal server error: {str(e)}")
+        return {"error": "Internal server error", "code": 500}, 500
 
-# Initialize logging
-log = get_logger('Server')
-log_level = logging.DEBUG if ENV == 'development' else logging.DEBUG
-set_log_level(log_level)
-
-
-# Initialize JWT
-init_jwt(app)
-
-# Register blueprints
-register_blueprints(app)
-
-# Error handling for common errors
-@app.errorhandler(404)
-def page_not_found(e):
-    return {"error": "Resource not found"}, 404
-
-@app.errorhandler(500)
-def internal_server_error(e):
-    return {"error": "Internal server error"}, 500
-
-# Log registered routes in development
-if ENV == 'development':
-    def log_routes():
-        log.debug("Registered routes:")
-        for rule in app.url_map.iter_rules():
-            log.debug(f"{rule.endpoint}: {rule.rule} [{', '.join(rule.methods)}]")
-    log_routes()
+app = create_app()
 
 if __name__ == '__main__':
-    if ENV == 'development':
-        app.run(host=ServerConfig.HOST, port=ServerConfig.PORT, debug=True)
+    if environment['environment'] == 'development':
+        app.run(host=app.config['HOST'], port=app.config['PORT'], debug=app.config['DEBUG'])
     else:
         print("🚀 Production mode detected. Please use Gunicorn to run this application.")
         raise RuntimeError("Use gunicorn to run in production")
