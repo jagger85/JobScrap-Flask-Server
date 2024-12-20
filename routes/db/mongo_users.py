@@ -33,7 +33,7 @@ def create_user():
     })
 
     return jsonify({"msg": "User created successfully"}), 201
-
+# Delete user
 @user_bp.route("/api/admin/users/<username>", methods=["DELETE"])
 @admin_required
 def delete_user_admin(username):
@@ -44,8 +44,18 @@ def delete_user_admin(username):
     if not user:
         return jsonify({"msg": "User not found"}), 404
 
-    # Delete the user
+
     db['Users'].delete_one({"username": username})
     
     return jsonify({"msg": "User deleted successfully"}), 200
 
+
+# Retrieve all users from the database
+@user_bp.route("/api/users", methods=["GET"])
+@admin_required 
+def get_all_users():
+
+    db = MongoClient.get_db()
+    users = list(db['Users'].find({}, {"_id": 0, "password": 0}))  # Exclude password and _id from the response
+    
+    return jsonify(users), 200
