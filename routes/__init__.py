@@ -1,4 +1,5 @@
 from server import stop_bp, sse_bp, listings_bp, logging_bp, fetch_listings_bp, health_bp, reset_bp
+from .db import user_bp
 
 def register_blueprints(app):
     blueprints = [
