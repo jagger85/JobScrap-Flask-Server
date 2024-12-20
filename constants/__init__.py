@@ -3,13 +3,12 @@ from .message_type import MessageType
 from .platform_states import PlatformStates
 from .platforms import Platforms
 from dotenv import load_dotenv
+from enum import Enum
 import os 
 
 load_dotenv()
 
 environment = {
-    "user": os.getenv('FRONT_USER'),
-    "password": os.getenv('FRONT_PASSWORD'),
     "jwt_secret": os.getenv('JWT_SECRET_KEY'),
     "backend_port": os.getenv('BACKEND_PORT'),
     "backend_host": os.getenv('BACKEND_HOST'),
@@ -21,3 +20,7 @@ environment = {
     "mongo_password": os.getenv('MONGO_PASSWORD')
 }
 
+class UserRole(Enum):
+    ADMIN = "admin"
+    USER = "user"
+    GUEST = "guest"
