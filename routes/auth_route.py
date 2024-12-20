@@ -11,7 +11,8 @@ Attributes:
 from flask import Blueprint, jsonify, request
 from flask_jwt_extended import create_access_token
 from constants import environment
-
+from services import MongoClient
+import bcrypt
 logging_bp = Blueprint("logging", __name__)
 
 @logging_bp.route("/api/login", methods=["POST"])
@@ -62,13 +63,21 @@ def login():
     if not username or not password:
         return jsonify({"msg": "Missing username or password"}), 400
 
-    frontUser = environment['user']
-    frontPass = environment['password']
+    db = MongoClient.get_db()
+    user = db['Users'].find_one({"username": username})
 
-    # Verify user credentials against environment variables
-    if username == frontUser and password == frontPass:
+    # Check if user exists before validating password
+    if user is None:
+        return jsonify({"msg": "Invalid credentials"}), 401
+
+    is_valid_password = bcrypt.checkpw(password.encode('utf-8'), user['password'].encode('utf-8'))
+    
+
+    if is_valid_password:
+        role = user['role']
         # Generate a JWT access token
-        access_token = create_access_token(identity=username)
+        access_token = create_access_token(identity=username, additional_claims={"role": role}, expires_delta=None)
         return jsonify(access_token=access_token), 200
     else:
         return jsonify({"msg": "Invalid credentials"}), 401
+
