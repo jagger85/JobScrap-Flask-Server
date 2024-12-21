@@ -75,8 +75,9 @@ def login():
 
     if is_valid_password:
         role = user['role']
+        username = user['username']
         # Generate a JWT access token
-        access_token = create_access_token(identity=username, additional_claims={"role": role}, expires_delta=None)
+        access_token = create_access_token(identity=username, additional_claims={"role": role, "username": username}, expires_delta=None)
         return jsonify(access_token=access_token), 200
     else:
         return jsonify({"msg": "Invalid credentials"}), 401
