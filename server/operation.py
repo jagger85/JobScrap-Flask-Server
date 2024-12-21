@@ -31,7 +31,7 @@ class Operation:
         platform_handlers (dict): Mapping of platforms to their respective handler classes.
     """
 
-    def __init__(self, date_range: DateRange, platforms: list[Platforms], keywords: str = None):
+    def __init__(self, user: str, date_range: DateRange, platforms: list[Platforms]):
         self.config = Config()
         self.config.platforms = [platform.value for platform in platforms]
         self.config.date_range = date_range
