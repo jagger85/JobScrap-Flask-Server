@@ -1,5 +1,5 @@
 from transitions import Machine
-from brightdata.brightdata_api import BrightDataClient
+from .brightdata_api import BrightDataClient
 from models import LinkedInParams, IndeedParams
 from models import JobListing
 import time

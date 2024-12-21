@@ -1,9 +1,7 @@
 from logger.logger import get_logger, get_sse_handler
 from constants.platforms import Platforms
 from constants.date_range import DateRange
-from selenium_scrappers.kalibrr.kalibrr_api_request import KalibrrAPIClient
-from selenium_scrappers.jobstreet.jobstreet_scrapper_machine import JobstreetScrapperMachine as jobstreet_scrapper
-from brightdata.BrightPioneer import BrightPioneer
+from scrappers import kalibrr, jobstreet, brightPioneer
 from config.config import Config
 from data_handler import StorageType
 from server.state_manager import StateManager

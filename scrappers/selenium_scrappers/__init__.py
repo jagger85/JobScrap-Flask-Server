@@ -1,0 +1,2 @@
+from .jobstreet.jobstreet_scrapper_machine import JobstreetScrapperMachine
+from .kalibrr.kalibrr_scrapper_machine import KalibrrScrapperMachine
