@@ -1,1 +1,1 @@
-from .mongo_users import user_bp
+from .mongo_users_route import user_bp
