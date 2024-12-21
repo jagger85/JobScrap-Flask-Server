@@ -1,11 +1,12 @@
 from pymongo import MongoClient as PyMongoClient
 from constants import environment
-from models import UserModel
+from models import UserModel, OperationModel
 
 class MongoClient:
     _instance = None
     _db = None
     user_model = None 
+    operation_model = None
     
 
     @classmethod
@@ -15,4 +16,5 @@ class MongoClient:
             client = PyMongoClient(connection_string)
             cls._db = client['Jobsweep-Database']
             cls.user_model = UserModel(cls._db)
+            cls.operation_model = OperationModel(cls._db)
         return cls._db
