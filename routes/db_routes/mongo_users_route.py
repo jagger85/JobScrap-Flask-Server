@@ -1,6 +1,6 @@
 from flask import Blueprint, request, jsonify
 import bcrypt
-from services import MongoClient
+from services import user_model
 from datetime import datetime
 from middlewares import admin_required
 
@@ -12,7 +12,6 @@ user_bp = Blueprint("user",__name__)
 @admin_required
 def create_user():
 
-    user_model = MongoClient.user_model
 
     data = request.json
     username = data.get("username")
@@ -41,7 +40,6 @@ def create_user():
 @admin_required
 def delete_user_admin(username):
 
-    user_model = MongoClient.user_model
 
     # Check if the user exists
     user = user_model.find_by_username(username)  # Store the result in 'user' variable
@@ -54,8 +52,6 @@ def delete_user_admin(username):
 @user_bp.route("/api/users", methods=["GET"])
 @admin_required 
 def get_all_users():
-
-    user_model = MongoClient.user_model
     # Use user_model instead of direct db access for consistency
     users = user_model.get_all_users()
     return jsonify(users), 200

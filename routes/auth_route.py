@@ -11,8 +11,9 @@ Attributes:
 from flask import Blueprint, jsonify, request
 from flask_jwt_extended import create_access_token
 from constants import environment
-from services import MongoClient
+from services import user_model
 import bcrypt
+
 logging_bp = Blueprint("logging", __name__)
 
 @logging_bp.route("/api/login", methods=["POST"])
@@ -63,8 +64,8 @@ def login():
     if not username or not password:
         return jsonify({"msg": "Missing username or password"}), 400
 
-    db = MongoClient.get_db()
-    user = db['Users'].find_one({"username": username})
+    
+    user = user_model.find_one({"username": username})
 
     # Check if user exists before validating password
     if user is None:
