@@ -17,10 +17,7 @@ environment = {
     "remote_ip": os.getenv('REMOTE_IP'),
     "bright_key": os.getenv('BRIGHT'),
     "mongo_user": os.getenv('MONGO_USER'),
-    "mongo_password": os.getenv('MONGO_PASSWORD'),
-    "redis_host": os.getenv("REDIS_HOST"),
-    "redis_port": os.getenv("REDIS_PORT"),
-    "redis_db": os.getenv("REDIS_DB")
+    "mongo_password": os.getenv('MONGO_PASSWORD')
 }
 
 class UserRole(Enum):
