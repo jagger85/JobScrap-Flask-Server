@@ -3,7 +3,7 @@ import requests
 from constants.date_range import DateRange
 from constants.platforms import Platforms
 from constants.platform_states import PlatformStates
-from models import JobListing
+from models.JobListing import JobListing
 from logger.logger import get_logger
 from bs4 import BeautifulSoup
 from server.state_manager import StateManager
