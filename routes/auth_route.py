@@ -13,7 +13,7 @@ from flask_jwt_extended import create_access_token
 from constants import environment
 from services import user_model
 import bcrypt
-
+from services import user_model
 logging_bp = Blueprint("logging", __name__)
 
 @logging_bp.route("/api/login", methods=["POST"])
@@ -75,8 +75,8 @@ def login():
     
 
     if is_valid_password:
-        role = user['role']
         username = user['username']
+        role = user_model.get_role_with_username(username)
         # Generate a JWT access token
         access_token = create_access_token(identity=username, additional_claims={"role": role, "username": username}, expires_delta=None)
         return jsonify(access_token=access_token), 200
