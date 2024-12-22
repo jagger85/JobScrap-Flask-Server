@@ -21,3 +21,13 @@ class UserModel(BaseModel):
 
     def get_all_users(self):
         return list(self.collection.find({}, {"_id": 0, "password": 0}))
+
+    def get_user_with_id(self, id):
+        return self.collection.find_one({"_id": id}, {"_id": 0, "password": 0})
+
+    def get_id_with_username(self, username):
+        return self.collection.find_one({"username": username}, {"_id": 1})["_id"] if self.collection.find_one({"username": username}) else None
+
+    def get_role_with_username(self, username):
+        user = self.collection.find_one({"username": username}, {"_id": 0, "role": 1})
+        return user["role"] if user else None
