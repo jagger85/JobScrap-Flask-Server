@@ -65,7 +65,7 @@ def login():
         return jsonify({"msg": "Missing username or password"}), 400
 
     
-    user = user_model.find_one({"username": username})
+    user = user_model.find_by_username(username)
 
     # Check if user exists before validating password
     if user is None:
