@@ -14,7 +14,7 @@ def admin_required(f):
         
         try:
             role = get_role(token)
-            if role != UserRole.ADMIN.value:
+            if role != UserRole.ADMIN:
                 return jsonify({"msg": "Admin access required"}), 403
         except jwt.ExpiredSignatureError:
             return jsonify({"msg": "Token has expired"}), 401

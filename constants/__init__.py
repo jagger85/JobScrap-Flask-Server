@@ -3,7 +3,7 @@ from .message_type import MessageType
 from .platform_states import PlatformStates
 from .platforms import Platforms
 from dotenv import load_dotenv
-from enum import Enum
+from enum import StrEnum
 import os 
 
 load_dotenv()
@@ -23,7 +23,7 @@ environment = {
     "redis_db": os.getenv("REDIS_DB")
 }
 
-class UserRole(Enum):
+class UserRole(StrEnum):
     ADMIN = "admin"
     USER = "user"
     GUEST = "guest"

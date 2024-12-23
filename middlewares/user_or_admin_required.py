@@ -15,7 +15,7 @@ def user_or_admin_required(f):
         try:
             role = get_role(token)
             # Decode the JWT token
-            if role not in [UserRole.USER.value, UserRole.ADMIN.value]:
+            if role not in [UserRole.USER, UserRole.ADMIN]:
                 return jsonify({"msg": "User or admin access required"}), 403
         except jwt.ExpiredSignatureError:
             return jsonify({"msg": "Token has expired"}), 401
