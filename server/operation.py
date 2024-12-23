@@ -3,7 +3,6 @@ from constants.platforms import Platforms
 from constants.date_range import DateRange
 from scrappers import kalibrr, jobstreet, brightPioneer
 from config.config import Config
-from data_handler import StorageType
 from server.state_manager import StateManager
 from server.sse_observer import SSEObserver
 from constants.platform_states import PlatformStates
@@ -36,7 +35,6 @@ class Operation:
         self.config.platforms = [platform.value for platform in platforms]
         self.config.date_range = date_range
         self.config.keywords = keywords
-        self.config.storage_type = StorageType.JSON
         self.listings = None
         
         # Initialize data handler

@@ -1,6 +1,6 @@
 import json
 from selenium.webdriver.common.by import By
-from data_handler.file_context import FileContext
+from helpers import FileContext
 from selenium.common.exceptions import NoSuchElementException
 import os
 

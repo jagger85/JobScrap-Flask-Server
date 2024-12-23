@@ -4,7 +4,7 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.common.exceptions import TimeoutException, NoSuchElementException
-from data_handler.file_context import FileContext
+from helpers import FileContext
 
 # Define the absolute path to the locators directory
 LOCATORS_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "jobstreet_locators.json")

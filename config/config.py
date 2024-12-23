@@ -1,6 +1,4 @@
 from typing import List, Optional
-from data_handler.storage_factory import StorageFactory
-from data_handler.storage_type import StorageType
 from constants.date_range import DateRange
 from constants.platforms import Platforms
 
@@ -104,28 +102,6 @@ class Config:
     @keywords.setter
     def keywords(self, keywords: str):
         self._keywords = keywords
-
-    # Storage properties
-    @property
-    def storage_type(self) -> StorageType:
-        """
-        Get the configured storage type.
-
-        This property determines which storage implementation to use for saving job data.
-
-        Returns:
-            StorageType: The enum value representing the storage type (e.g., LOCAL, S3).
-
-        Example:
-            >>> config = Config()
-            >>> storage_type = config.storage_type
-        """
-        return self._storage_type
-
-    @storage_type.setter
-    def storage_type(self, storage_type: StorageType):
-        self._storage_type = storage_type
-        self._storage = StorageFactory.get_storage_handler(storage_type)
 
     @property
     def storage(self):
@@ -233,8 +209,6 @@ class Config:
         self._chrome_driver = None
         self._date_range = DateRange.PAST_24_HOURS
         self._keywords = ""
-        self._storage_type = StorageType.JSON
-        self._storage = StorageFactory.get_storage_handler(self._storage_type)
         self._user_id = None
         self._platforms = []
         self._listings = None
