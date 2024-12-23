@@ -42,85 +42,6 @@ colored_formatter = ColoredFormatter(
     style="%",
 )
 
-# Add a plain formatter for SSE messages
-SSE_FORMAT = "%(message)s" 
-sse_formatter = logging.Formatter(SSE_FORMAT)
-
-class SSELoggingHandler(logging.Handler):
-    """
-    Custom logging handler for Server-Sent Events (SSE).
-
-    This handler manages logging messages in a queue format suitable for
-    SSE transmission, with support for different log levels and message types.
-
-    Attributes:
-        queue (Queue): Thread-safe queue for storing formatted log messages.
-    """
-
-    def __init__(self):
-        """
-        Initialize the SSE logging handler with a message queue.
-        """
-        super().__init__()
-        self.queue = Queue()
-
-    def emit(self, record):
-        """
-        Process and queue a log record for SSE transmission.
-
-        This method formats the log record into a structured message
-        and adds it to the message queue.
-
-        Args:
-            record (LogRecord): The log record to process and queue.
-
-        Returns:
-            None: Messages are added to the internal queue.
-
-        Raises:
-            None: All exceptions are caught and handled internally.
-        """
-        try:
-            level_to_type = {
-                logging.DEBUG: "debug",
-                logging.INFO: "info",
-                PROGRESS: "progress",
-                logging.WARNING: "warning",
-                logging.ERROR: "error",
-                logging.CRITICAL: "error",
-            }
-
-            message = {
-                "type": level_to_type.get(record.levelno, "info"),
-                "message": record.getMessage()
-            }
-            
-            self.queue.put(message)
-        except Exception:
-            self.handleError(record)
-
-    def get_message(self):
-        """
-        Retrieve the next message from the queue.
-
-        Returns:
-            dict: Message containing type and content, or None if queue is empty.
-                Format: {'type': str, 'message': str}
-
-        Example:
-            >>> handler = SSELoggingHandler()
-            >>> msg = handler.get_message()
-            >>> if msg:
-            >>>     print(f"Type: {msg['type']}, Message: {msg['message']}")
-        """
-        if not self.queue.empty():
-            return self.queue.get()
-        return None
-
-# Initialize SSE handler
-sse_handler = SSELoggingHandler()
-sse_handler.setFormatter(sse_formatter)  # Use plain formatter instead of colored
-
 # Custom StreamHandler for progress messages
 class ProgressStreamHandler(logging.StreamHandler):
     """
@@ -175,13 +96,8 @@ class ErrorReportHandler(logging.Handler):
         # TODO send the error to the report object
         pass
 
-_sse_handler: Optional[SSELoggingHandler] = None
 
-def get_sse_handler() -> SSELoggingHandler:
-    global _sse_handler
-    if _sse_handler is None:
-        _sse_handler = SSELoggingHandler()
-    return _sse_handler
+
 
 def get_logger(name):
     """
@@ -206,7 +122,6 @@ def get_logger(name):
     
     if not logger.handlers:
         logger.addHandler(console_handler)
-        logger.addHandler(get_sse_handler())
         logger.addHandler(ErrorReportHandler())
         
     console_handler.setLevel(root_level)

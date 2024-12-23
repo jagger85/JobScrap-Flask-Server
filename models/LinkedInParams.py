@@ -1,7 +1,7 @@
 from dataclasses import dataclass, field
 from typing import Dict
 from enum import Enum
-from constants.date_range import DateRange
+from constants import DateRange
 from logger.logger import get_logger
 
 dataset_id = "gd_lpfll7v5hcqtkxl6l"

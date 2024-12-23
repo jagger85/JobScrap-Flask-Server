@@ -1,5 +1,6 @@
 import redis
-from constants import environment
+import json
+from constants import environment, MessageType, PlatformStates
 
 redis_client = redis.StrictRedis(
     host=environment["redis_host"],  
@@ -7,3 +8,9 @@ redis_client = redis.StrictRedis(
     db=int(environment["redis_db"]),
     decode_responses=True,
 )
+
+def send_socket_message(user_id, messageType: str, message: str ):
+    redis_client.publish(f"ws:client:{user_id}", json.dumps({
+        "type": messageType,
+        "message": message 
+    }))

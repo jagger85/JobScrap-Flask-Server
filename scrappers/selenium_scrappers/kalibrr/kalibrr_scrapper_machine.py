@@ -2,7 +2,6 @@ from ..base_scrap_state_machine import BaseScrapStateMachine
 from .kalibrr_navigator import KalibrrNavigator
 from models import JobListing
 from typing import List
-from config.config import Config
 
 
 class KalibrrScrapperMachine(BaseScrapStateMachine):
@@ -30,7 +29,6 @@ class KalibrrScrapperMachine(BaseScrapStateMachine):
         global log
         log = logger
         super().__init__(logger)
-        self.driver.get(Config().kalibrr_url)
         
     def get_job_listings(self):
         """

@@ -4,10 +4,7 @@ from typing import List
 from models import JobListing
 from datetime import datetime, timedelta
 import re
-from config.config import Config
-from constants.date_range import DateRange
-from constants.platforms import Platforms
-from constants.platform_states import PlatformStates
+from constants import DateRange
 from logger.logger import get_logger
 
 
@@ -35,7 +32,6 @@ class JobstreetScrapperMachine(BaseScrapStateMachine):
         
         self.keywords = keywords
         # Set initial state to PROCESSING when starting scraping
-        self.state_manager.set_platform_state(Platforms.JOBSTREET, PlatformStates.PROCESSING)
 
         self.driver.get(self.build_jobstreet_url())
         log.info("Retrieving job listings from Jobstreet, this may take a few minutes…")
@@ -135,7 +131,6 @@ class JobstreetScrapperMachine(BaseScrapStateMachine):
         try:
             if not hasattr(self, 'listings') or not self.listings:
                 log.warning("No listings found on Jobstreet")
-                self.state_manager.set_platform_state(Platforms.JOBSTREET, PlatformStates.ERROR)
                 return []
 
             processed_listings = []
@@ -154,15 +149,13 @@ class JobstreetScrapperMachine(BaseScrapStateMachine):
                 )
                 processed_listings.append(processed_listing)
 
-            # Set state to FINISHED after successful processing
-            self.state_manager.set_platform_state(Platforms.JOBSTREET, PlatformStates.FINISHED)
             log.info(f"Total listings found on Jobstreet: {len(processed_listings)}")
 
             return processed_listings
 
         except Exception as e:
             log.error(f"Error processing job listings: {str(e)}")
-            self.state_manager.set_platform_state(Platforms.JOBSTREET, PlatformStates.ERROR)
+
             raise
 
     def process_error(self):
