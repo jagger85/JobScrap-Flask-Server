@@ -5,6 +5,9 @@ from constants import environment
 from scrappers import kalibrr_v2 as kalibrr_client
 import jwt
 from scrappers import kalibrr_v2
+from helpers import get_user, get_id
+from services import redis_client, operation_model
+import json
 
 kalibrr_bp = Blueprint("kalibrr", __name__)
 
@@ -14,17 +17,27 @@ def request_listings():
     try:
         #Retrieve the user from the jwt token
         token = request.headers.get("Authorization")
-        user = jwt.decode(token.split(" ")[1], environment["jwt_secret"], algorithms=["HS256"])["username"]
+        
+        user = get_user(token)
+        user_id = get_id(token)
+
+        # Publish a message to the Redis channel for the user
+        redis_client.publish(f"ws:client:{user_id}", json.dumps({
+            "type": "info",
+            "message": "Scrapping operation started" 
+        }))
 
         #Parse JSON data
         data = request.get_json(force=True)
 
-        client = kalibrr_client(data["days"],data["keywords"])
+        operation_id = operation_model.create_operation({"user": user, "platform": "kalibrr", "time_range": data["days"], "keywords": data["keywords"] })
+        
+        job_listings = kalibrr_client(data["days"],data["keywords"]).start()
 
-        job_listings = client.start()
+        operation_model.set_listings(operation_id,[job.to_dict() for job in job_listings])
+        
+        operation_model.set_result(operation_id, True)
 
-        print(job_listings)
-            
         return jsonify({
         'status': 'ok',
         'message': 'Lol is working'

@@ -1,6 +1,6 @@
 from .BaseModel import BaseModel
-from .validate_data import validate_data
-
+from datetime import datetime
+from bson import ObjectId
 class UserModel(BaseModel):
 
     REQUIRED_FIELDS = ["username", "password", "role"]
@@ -13,7 +13,8 @@ class UserModel(BaseModel):
         return self.collection.find_one({"username": username})
 
     def create_user(self, data):
-        if validate_data(data, self.REQUIRED_FIELDS):
+        if self.validate_data(data, self.REQUIRED_FIELDS):
+            data["created_at"] = datetime.utcnow(),
             return self.create(data)
 
     def delete_user(self, username):
@@ -21,3 +22,13 @@ class UserModel(BaseModel):
 
     def get_all_users(self):
         return list(self.collection.find({}, {"_id": 0, "password": 0}))
+
+    def get_user_with_id(self, id):
+        return self.collection.find_one({"_id": ObjectId(id)}, {"_id": 0, "password": 0})
+
+    def get_id_with_username(self, username):
+        return str(self.collection.find_one({"username": username}, {"_id": 1})["_id"]) if self.collection.find_one({"username": username}) else None
+
+    def get_role_with_username(self, username):
+        user = self.collection.find_one({"username": username}, {"_id": 0, "role": 1})
+        return user["role"] if user else None

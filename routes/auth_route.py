@@ -13,7 +13,7 @@ from flask_jwt_extended import create_access_token
 from constants import environment
 from services import user_model
 import bcrypt
-
+from services import user_model
 logging_bp = Blueprint("logging", __name__)
 
 @logging_bp.route("/api/login", methods=["POST"])
@@ -65,7 +65,7 @@ def login():
         return jsonify({"msg": "Missing username or password"}), 400
 
     
-    user = user_model.find_one({"username": username})
+    user = user_model.find_by_username(username)
 
     # Check if user exists before validating password
     if user is None:
@@ -75,10 +75,11 @@ def login():
     
 
     if is_valid_password:
-        role = user['role']
         username = user['username']
+        user_id = user_model.get_id_with_username(username)
+        role = user_model.get_role_with_username(username)
         # Generate a JWT access token
-        access_token = create_access_token(identity=username, additional_claims={"role": role, "username": username}, expires_delta=None)
+        access_token = create_access_token(identity=username, additional_claims={"role": role, "username": username, "id": user_id}, expires_delta=None)
         return jsonify(access_token=access_token), 200
     else:
         return jsonify({"msg": "Invalid credentials"}), 401

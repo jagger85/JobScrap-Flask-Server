@@ -3,7 +3,7 @@ from .message_type import MessageType
 from .platform_states import PlatformStates
 from .platforms import Platforms
 from dotenv import load_dotenv
-from enum import Enum
+from enum import StrEnum
 import os 
 
 load_dotenv()
@@ -17,10 +17,13 @@ environment = {
     "remote_ip": os.getenv('REMOTE_IP'),
     "bright_key": os.getenv('BRIGHT'),
     "mongo_user": os.getenv('MONGO_USER'),
-    "mongo_password": os.getenv('MONGO_PASSWORD')
+    "mongo_password": os.getenv('MONGO_PASSWORD'),
+    "redis_host": os.getenv("REDIS_HOST"),
+    "redis_port": os.getenv("REDIS_PORT"),
+    "redis_db": os.getenv("REDIS_DB")
 }
 
-class UserRole(Enum):
+class UserRole(StrEnum):
     ADMIN = "admin"
     USER = "user"
     GUEST = "guest"
