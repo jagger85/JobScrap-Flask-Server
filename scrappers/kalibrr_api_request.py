@@ -1,12 +1,9 @@
 from datetime import datetime, timezone, timedelta
 import requests
-from constants.date_range import DateRange
-from constants.platforms import Platforms
-from constants.platform_states import PlatformStates
+from constants import DateRange
 from models.JobListing import JobListing
 from logger.logger import get_logger
 from bs4 import BeautifulSoup
-from server.state_manager import StateManager
 
 class KalibrrAPIClient:
     """
@@ -33,55 +30,32 @@ class KalibrrAPIClient:
         >>> listings = client.start()
     """
 
-    def __init__(self, date_range: DateRange = None, keywords: str = None):
+    def __init__(self, days: str, keywords: str = None):
+        self.days = int(days)
         self.log = get_logger("Kalibrr")
         self.base_url = "https://www.kalibrr.com/kjs/job_board/search"
-        self.date_range = date_range
+        self.start_date = None
+        self.end_date = None
+        self.get_date_range(self.days)
+
         self.keywords = keywords
-
-        self.state_manager = StateManager()
         self.log.info("Retrieving job listings from Kalibrr")
-        self.state_manager.set_platform_state(Platforms.KALIBRR, PlatformStates.PROCESSING)
 
-        
-        if date_range:
-            self.start_date, self.end_date = self.get_date_range(date_range)
-            self.log.debug(f"Date range set to: {self.start_date} - {self.end_date}")
-        else:
-            self.start_date, self.end_date = None, None
-            self.log.debug("Initialized KalibrrAPIClient without date range")
 
-    def get_date_range(self, range_type: DateRange) -> tuple[datetime, datetime]:
-        """
-        Calculate start and end dates based on the specified range type.
+    def get_date_range(self, days: int) -> tuple[datetime, datetime]:
+        """Calculate the start and end date based on the number of days.
 
         Args:
-            range_type (DateRange): Type of date range to calculate.
+            days (int): The number of days to subtract from the current date.
 
         Returns:
-            tuple[datetime, datetime]: Tuple containing (start_date, end_date).
-
-        Raises:
-            ValueError: If an unsupported date range is provided.
-
-        Example:
-            >>> client = KalibrrAPIClient()
-            >>> start, end = client.get_date_range(DateRange.PAST_WEEK)
+            tuple[datetime, datetime]: A tuple containing the start and end dates.
         """
-        end_date = datetime.now(timezone.utc)
         
-        if range_type == DateRange.PAST_24_HOURS:
-            start_date = end_date - timedelta(days=1)
-        elif range_type == DateRange.PAST_WEEK:
-            start_date = end_date - timedelta(weeks=1)
-        elif range_type == DateRange.PAST_15_DAYS:
-            start_date = end_date - timedelta(days=15)
-        elif range_type == DateRange.PAST_MONTH:
-            start_date = end_date - timedelta(days=30)
-        else:
-            raise ValueError(f"Unsupported date range: {range_type}")
-            
-        return start_date, end_date
+        self.end_date = datetime.now(timezone.utc)  # Current date and time in UTC
+        self.start_date = self.end_date - timedelta(days=days)  # Start date calculated by subtracting days
+        
+        pass 
 
     def start(self) -> list[JobListing]:
         """
@@ -104,7 +78,7 @@ class KalibrrAPIClient:
             >>> listings = client.start()
             >>> print(f"Found {len(listings)} jobs")
         """
-        self.log.debug(f"Starting Kalibrr job listings retrieval for date range: {self.date_range.value if self.date_range else 'All'}")
+        self.log.debug(f"Starting Kalibrr job listings retrieval for date range: {self.days if self.days else 'All'}")
         
         try:
             # Set state to PROCESSING when starting
@@ -114,31 +88,25 @@ class KalibrrAPIClient:
             
             if not listings:
                 self.log.warning("No job listings found for the specified criteria in Kalibrr")
-                self.state_manager.set_platform_state(Platforms.KALIBRR, PlatformStates.FINISHED)                
                 return listings
             
             # Return the snapshot
             try:
-                self.state_manager.set_platform_state(Platforms.KALIBRR, PlatformStates.FINISHED)
                 self.log.info("Finished gathering job listings from Kalibrr")
                 return listings
                 
             except Exception as e:
                 self.log.debug(f"Failed to store job listings snapshot: {str(e)}")
-                self.state_manager.set_platform_state(Platforms.KALIBRR, PlatformStates.ERROR)
                 raise
             
         except requests.RequestException as e:
             self.log.error(f"Failed to fetch job listings from Kalibrr API: {str(e)}")
-            self.state_manager.set_platform_state(Platforms.KALIBRR, PlatformStates.ERROR)
             raise
         except ValueError as e:
             self.log.error(f"Invalid date range provided: {str(e)}")
-            self.state_manager.set_platform_state(Platforms.KALIBRR, PlatformStates.ERROR)
             raise
         except Exception as e:
             self.log.error(f"Unexpected error during job listings retrieval: {str(e)}")
-            self.state_manager.set_platform_state(Platforms.KALIBRR, PlatformStates.ERROR)
             raise
 
     def get_listings_by_date_range(self) -> list[JobListing]:
@@ -196,7 +164,6 @@ class KalibrrAPIClient:
                 
             except Exception as e:
                 self.log.debug(f"Error while retrieving Kalibrr job listings: {str(e)}")
-                self.state_manager.set_platform_state(Platforms.KALIBRR, PlatformStates.ERROR)
                 raise
             
         self.log.info(f"Total listings found on Kalibrr: {len(all_listings)}")
