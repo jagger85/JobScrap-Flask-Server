@@ -4,11 +4,9 @@ from models import LinkedInParams, IndeedParams
 from models import JobListing
 import time
 from typing import Union
-from config.config import Config
 from logger.logger import get_logger
-from constants.platforms import Platforms
-from constants.platform_states import PlatformStates
-from server.state_manager import StateManager
+from constants import Platforms
+from constants import PlatformStates
 from datetime import datetime
 
 # Define the possible states
@@ -59,7 +57,6 @@ class BrightPioneer:
     """
 
     def __init__(self,  params: Union[LinkedInParams, IndeedParams]):
-        self.state_manager = StateManager()
 
         global platform_name
         platform_name = params.get_platform_name()
@@ -80,12 +77,10 @@ class BrightPioneer:
         global client
         client = BrightDataClient(log)
 
-        self.config = Config()
         self.waiting_time = 60
         self.waiting_retries = 6
         self.waited_times = 0
  
-        self.data_manager = self.config.storage
         self.listings = []
 
         self.machine = Machine(

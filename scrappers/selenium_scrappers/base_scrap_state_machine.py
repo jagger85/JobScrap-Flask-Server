@@ -2,8 +2,6 @@ from transitions import Machine
 from abc import ABC, abstractmethod
 from models import JobListing
 from typing import List
-from config.config import Config
-from server.state_manager import StateManager
 from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.chrome.service import Service
@@ -69,13 +67,11 @@ class BaseScrapStateMachine(ABC):
     def __init__(self, logger):
         global log
         log = logger
-        self.config = Config()
-        self.state_manager = StateManager()
         self.machine = Machine(
             model=self, states=states, transitions=transitions, initial="idle"
         )
         log.debug('Starting Mission 🫡')
-        self.date_range = Config().date_range
+        self.date_range = None
         try:
             log.debug("🔧 Initializing Chrome driver")
             options = Options()
@@ -99,7 +95,6 @@ class BaseScrapStateMachine(ABC):
                 service=Service(get_driver_path()),
                 options=options
             )
-            self.config.chrome_driver = self.driver
                 
         except Exception as e:
             log.error(f"❌ Failed to initialize scraper: {str(e)}")

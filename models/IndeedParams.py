@@ -1,7 +1,7 @@
 from dataclasses import dataclass, field
 from typing import Dict
 from logger.logger import get_logger
-from constants.date_range import DateRange
+from constants import DateRange
 
 dataset_id = "gd_l4dx9j9sscpvs7no2"
 platform_name = "Indeed"
