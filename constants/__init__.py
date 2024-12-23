@@ -1,7 +1,3 @@
-from .date_range import DateRange
-from .message_type import MessageType
-from .platform_states import PlatformStates
-from .platforms import Platforms
 from dotenv import load_dotenv
 from enum import StrEnum
 import os 
@@ -23,7 +19,36 @@ environment = {
     "redis_db": os.getenv("REDIS_DB")
 }
 
+kalibrr_url = "https://www.kalibrr.com/home/co/Philippines/i/it-and-software?sort=Freshness"
+jobstreet_url = "https://ph.jobstreet.com"
+
 class UserRole(StrEnum):
     ADMIN = "admin"
     USER = "user"
     GUEST = "guest"
+
+class DateRange(StrEnum):
+    PAST_24_HOURS = "Past 24 hours"
+    PAST_WEEK = "Past week"
+    PAST_15_DAYS = "Past 15 days"
+    PAST_MONTH = "Past month"
+
+class MessageType(StrEnum):
+    HEARTBEAT = "heartbeat" 
+    PLATFORM_STATE = "platform_states"
+    INFO = "info"
+    WARNING = 'warning'
+    ERROR = 'error'
+    PROGRESS = 'progress'
+    DEBUG = 'debug'
+
+class PlatformStates(StrEnum):
+    PROCESSING = "processing"  
+    FINISHED = "finished"   
+    ERROR = "error"
+
+class Platforms(StrEnum):
+    KALIBRR = "Kalibrr"
+    JOBSTREET = "Jobstreet"
+    INDEED = "Indeed"
+    LINKEDIN = "LinkedIn"
