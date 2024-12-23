@@ -1,12 +1,11 @@
 from flask import Blueprint, request, jsonify
 from flask_jwt_extended import jwt_required
 from middlewares import user_or_admin_required
-from constants import environment
-from scrappers import kalibrr_v2 as kalibrr_client
+from constants import environment, MessageType, PlatformStates
+from scrappers import kalibrr as kalibrr_client
 import jwt
-from scrappers import kalibrr_v2
 from helpers import get_user, get_id
-from services import redis_client, operation_model
+from services import operation_model, send_socket_message
 import json
 
 kalibrr_bp = Blueprint("kalibrr", __name__)
@@ -22,10 +21,12 @@ def request_listings():
         user_id = get_id(token)
 
         # Publish a message to the Redis channel for the user
-        redis_client.publish(f"ws:client:{user_id}", json.dumps({
-            "type": "info",
-            "message": "Scrapping operation started" 
-        }))
+        # redis_client.publish(f"ws:client:{user_id}", json.dumps({
+        #     "type": "info",
+        #     "message": "Scrapping operation started" 
+        # }))
+
+        send_socket_message(user_id, MessageType.PLATFORM_STATE, PlatformStates.PROCESSING)
 
         #Parse JSON data
         data = request.get_json(force=True)
