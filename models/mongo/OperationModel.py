@@ -1,5 +1,4 @@
 from .BaseModel import BaseModel
-from .validate_data import validate_data
 from datetime import datetime
 from bson import ObjectId
 class OperationModel(BaseModel):
@@ -10,7 +9,7 @@ class OperationModel(BaseModel):
         super().__init__(db,"Operations")
 
     def create_operation(self, data):
-        if validate_data(data, self.REQUIRED_FIELDS):
+        if self.validate_data(data, self.REQUIRED_FIELDS):
             data["created_at"] = datetime.utcnow()
             return self.create(data)
     
