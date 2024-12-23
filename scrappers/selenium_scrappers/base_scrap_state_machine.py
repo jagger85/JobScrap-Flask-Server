@@ -257,7 +257,6 @@ class BaseScrapStateMachine(ABC):
             log.debug("🧹 Cleaning up Chrome driver")
             self.driver.quit()
             self.driver = None
-            self.config.chrome_driver = None
             log.debug("✨ Chrome driver cleaned up successfully")
         else:
             log.debug("🤷 No Chrome driver to clean up")
