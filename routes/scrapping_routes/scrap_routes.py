@@ -7,9 +7,10 @@ import jwt
 from helpers import get_user, get_id
 from services import operation_model, send_socket_message
 import json
-from tasks import kalibrr_scrap
+from tasks import kalibrr_scrap, jobstreet_scrap
 
 kalibrr_bp = Blueprint("kalibrr", __name__)
+jobstreet_bp = Blueprint("jobstreet", __name__)
 
 @kalibrr_bp.route("/api/kalibrr", methods=["POST"])
 @jwt_required()
@@ -27,5 +28,23 @@ def request_listings():
         return result
 
     except Exception as e:
+        return jsonify({"error": f"An unexpected error occurred   {e}"})
 
+
+@jobstreet_bp.route("/api/jobstreet", methods=['POST'])
+@jwt_required()
+def request_listings():
+    try:
+        data = request.get_json(force=True)
+        token = request.headers.get("Authorization")
+        user = get_user(token)
+        user_id = get_id(token)
+
+        result = jobstreet_scrap.delay(user_id, user, data).get(timeout=3000)
+
+        return result
+
+        
+        
+    except Exception as e:
         return jsonify({"error": f"An unexpected error occurred   {e}"})

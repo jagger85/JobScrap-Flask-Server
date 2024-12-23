@@ -1,1 +1,3 @@
-from .kalibrr_route import kalibrr_bp
+from .scrap_routes import kalibrr_bp, jobstreet_bp
+
+
