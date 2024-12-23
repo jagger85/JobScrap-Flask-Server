@@ -1,1 +1,1 @@
-from .jwt import get_role, get_user
+from .jwt import get_role, get_user, get_id
