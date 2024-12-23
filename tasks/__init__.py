@@ -1,1 +1,1 @@
-from .celery_tasks import kalibrr_scrap
+from .celery_tasks import kalibrr_scrap, jobstreet_scrap
