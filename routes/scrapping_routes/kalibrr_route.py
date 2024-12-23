@@ -7,6 +7,7 @@ import jwt
 from helpers import get_user, get_id
 from services import operation_model, send_socket_message
 import json
+from tasks import kalibrr_scrap
 
 kalibrr_bp = Blueprint("kalibrr", __name__)
 
@@ -14,35 +15,16 @@ kalibrr_bp = Blueprint("kalibrr", __name__)
 @jwt_required()
 def request_listings():
     try:
+        #Parse JSON data
+        data = request.get_json(force=True)
         #Retrieve the user from the jwt token
         token = request.headers.get("Authorization")
-        
         user = get_user(token)
         user_id = get_id(token)
 
-        # Publish a message to the Redis channel for the user
-        # redis_client.publish(f"ws:client:{user_id}", json.dumps({
-        #     "type": "info",
-        #     "message": "Scrapping operation started" 
-        # }))
+        result = kalibrr_scrap.delay(user_id, user, data).get(timeout=30)
 
-        send_socket_message(user_id, MessageType.PLATFORM_STATE, PlatformStates.PROCESSING)
-
-        #Parse JSON data
-        data = request.get_json(force=True)
-
-        operation_id = operation_model.create_operation({"user": user, "platform": "kalibrr", "time_range": data["days"], "keywords": data["keywords"] })
-        
-        job_listings = kalibrr_client(data["days"],data["keywords"]).start()
-
-        operation_model.set_listings(operation_id,[job.to_dict() for job in job_listings])
-        
-        operation_model.set_result(operation_id, True)
-
-        return jsonify({
-        'status': 'ok',
-        'message': 'Lol is working'
-    }), 200
+        return result
 
     except Exception as e:
 
