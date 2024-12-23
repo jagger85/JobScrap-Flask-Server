@@ -16,10 +16,13 @@ environment = {
     "mongo_password": os.getenv('MONGO_PASSWORD'),
     "redis_host": os.getenv("REDIS_HOST"),
     "redis_port": os.getenv("REDIS_PORT"),
-    "redis_db": os.getenv("REDIS_DB")
+    "redis_db": os.getenv("REDIS_DB"),
+    "celery_broker_url": os.getenv("CELERY_BROKER_URL"),
+    "celery_result_backend": os.getenv("CELERY_RESULT_BACKEND")
 }
 
 kalibrr_url = "https://www.kalibrr.com/home/co/Philippines/i/it-and-software?sort=Freshness"
+kalibrr_api_url = "https://www.kalibrr.com/kjs/job_board/search"
 jobstreet_url = "https://ph.jobstreet.com"
 
 class UserRole(StrEnum):

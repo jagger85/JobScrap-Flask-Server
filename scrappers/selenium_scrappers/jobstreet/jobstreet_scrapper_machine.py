@@ -4,8 +4,9 @@ from typing import List
 from models import JobListing
 from datetime import datetime, timedelta
 import re
-from constants import DateRange
+from constants import DateRange, jobstreet_url
 from logger.logger import get_logger
+
 
 
 class JobstreetScrapperMachine(BaseScrapStateMachine):
@@ -25,11 +26,11 @@ class JobstreetScrapperMachine(BaseScrapStateMachine):
         >>> scrapper = JobstreetScrapperMachine()
         >>> listings = scrapper.get_job_listings()
     """
-    def __init__(self, keywords: str = None):
+    def __init__(self, days: str = "1", keywords: str = None ):
         global log
         log = get_logger("Jobstreet")
         super().__init__(log)
-        
+        self.days = days
         self.keywords = keywords
         # Set initial state to PROCESSING when starting scraping
 
@@ -61,24 +62,17 @@ class JobstreetScrapperMachine(BaseScrapStateMachine):
             >>> print(url)
             'https://www.jobstreet.com.ph/jobs?classification=...'
         """
-        date_range_mapping = {
-            DateRange.PAST_24_HOURS: "1",
-            DateRange.PAST_WEEK: "7",
-            DateRange.PAST_15_DAYS: "15",
-            DateRange.PAST_MONTH: "31"
-        }
  
-        base_url = Config().jobstreet_url
-        date_range_value = date_range_mapping.get(self.date_range)
+        base_url = jobstreet_url
         classification = '6263%2C6281'
         subclassification = '6268%2C6273%2C6284%2C6286%2C6287%2C6290%2C6302'
         if self.keywords:
             log.debug(f"Using keywords: {self.build_keywords()}")
-            url = f"{base_url}/{self.build_keywords()}?classification={classification}&daterange={date_range_value}&subclassification={subclassification}"
+            url = f"{base_url}/{self.build_keywords()}?classification={classification}&daterange={self.days}&subclassification={subclassification}"
             log.debug(url)
             return url
         else:
-            url = f"{base_url}/jobs?classification={classification}&daterange={date_range_value}&subclassification={subclassification}"
+            url = f"{base_url}/jobs?classification={classification}&daterange={self.days}&subclassification={subclassification}"
             log.debug(url)
             return url
 
