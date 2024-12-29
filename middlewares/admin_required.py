@@ -1,6 +1,6 @@
 from functools import wraps
 import jwt
-from helpers import get_role, get_user
+from helpers import get_role_from_jwt
 from constants import environment
 from constants import UserRole
 from flask import request, jsonify
@@ -13,7 +13,7 @@ def admin_required(f):
             return jsonify({"msg": "Missing token"}), 401
         
         try:
-            role = get_role(token)
+            role = get_role_from_jwt(token)
             if role != UserRole.ADMIN:
                 return jsonify({"msg": "Admin access required"}), 403
         except jwt.ExpiredSignatureError:
