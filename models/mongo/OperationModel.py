@@ -14,10 +14,19 @@ class OperationModel(BaseModel):
             return self.create(data)
     
     def get_all_operations(self):
-        return list(self.collection.find({}, {"_id":0}))
+        operations = list(self.collection.find({}))
+        # Convert ObjectId to string for each document
+        for op in operations:
+            op['_id'] = str(op['_id'])
+        return operations
         
     def set_listings(self, document_id, listings):
         self.collection.update_one({"_id": ObjectId(document_id)}, {"$set": {"listings": listings}})
     
     def set_result(self, document_id, result):
         self.collection.update_one({"_id": ObjectId(document_id)}, {"$set": {"success": result}})
+
+    def delete_operation(self, document_id):
+        # Convert the document_id back to ObjectId
+        object_id = ObjectId(document_id)
+        self.collection.delete_one({"_id": object_id})
