@@ -12,7 +12,7 @@ from tasks import kalibrr_scrap, jobstreet_scrap
 kalibrr_bp = Blueprint("kalibrr", __name__)
 jobstreet_bp = Blueprint("jobstreet", __name__)
 
-@kalibrr_bp.route("/api/kalibrr", methods=["POST"])
+@kalibrr_bp.route("/api/Kalibrr", methods=["POST"])
 @jwt_required()
 def request_listings():
     try:
@@ -22,16 +22,14 @@ def request_listings():
         token = request.headers.get("Authorization")
         user = get_user_from_jwt(token)
         user_id = get_id_from_jwt(token)
-
         result = kalibrr_scrap.delay(user_id, user, data).get(timeout=30)
-
         return result
 
     except Exception as e:
         return jsonify({"error": f"An unexpected error occurred   {e}"})
 
 
-@jobstreet_bp.route("/api/jobstreet", methods=['POST'])
+@jobstreet_bp.route("/api/Jobstreet", methods=['POST'])
 @jwt_required()
 def request_listings():
     try:
@@ -39,12 +37,8 @@ def request_listings():
         token = request.headers.get("Authorization")
         user = get_user_from_jwt(token)
         user_id = get_id_from_jwt(token)
-
         result = jobstreet_scrap.delay(user_id, user, data).get(timeout=3000)
-
         return result
 
-        
-        
     except Exception as e:
         return jsonify({"error": f"An unexpected error occurred   {e}"})
