@@ -30,3 +30,8 @@ class OperationModel(BaseModel):
         # Convert the document_id back to ObjectId
         object_id = ObjectId(document_id)
         self.collection.delete_one({"_id": object_id})
+
+    def get_operation_by_task_id(self, task_id):
+        # task_id is a string, no need for ObjectId conversion
+        operation = self.collection.find_one({"task_id": task_id})
+        return operation

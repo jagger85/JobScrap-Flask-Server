@@ -16,3 +16,12 @@ def get_all_operations():
 def delete_operation(operation_id):
     operation_model.delete_operation(operation_id)
     return jsonify({"message": "Operation deleted successfully"}), 200
+
+@operation_bp.route("/api/operations/task/<task_id>", methods=["GET"])
+@user_or_admin_required
+def get_operation_by_task_id(task_id):
+    operation = operation_model.get_operation_by_task_id(task_id)
+    if operation:
+        operation['_id'] = str(operation['_id'])
+        return jsonify(operation), 200
+    return jsonify({"message": "Operation not found"}), 404

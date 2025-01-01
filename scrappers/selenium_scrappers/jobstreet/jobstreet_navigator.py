@@ -3,6 +3,7 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.common.exceptions import NoSuchElementException
+from services import update_operation_listings_count
 
 class JobstreetNavigator:
     """
@@ -28,13 +29,15 @@ class JobstreetNavigator:
         >>> listings = navigator.request_listings()
     """
 
-    def __init__(self, logger, driver,):
+    def __init__(self, logger, driver, user_id, task_id):
         global log
         log = logger
         self.driver = driver
         self.page = driver.current_url
         self.home_page = JobstreetHomePage(driver=self.driver, logger=log)
         self.job_listings = []
+        self.user_id = user_id
+        self.task_id = task_id
 
     def request_listings(self):
         """
@@ -77,6 +80,7 @@ class JobstreetNavigator:
                         listing_details['listing_id'] = listing_id
                         self.job_listings.append(listing_details)
                         log.info(f"Retrieved {len(self.job_listings)} listings from Jobstreet")
+                        update_operation_listings_count(self.user_id, self.task_id, len(self.job_listings))
                         log.debug(f"Successfully collected details for listing {listing_id}")
                     else:
                         log.debug(f"Failed to collect details for listing {listing_id}")

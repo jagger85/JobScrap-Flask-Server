@@ -16,14 +16,12 @@ jobstreet_bp = Blueprint("jobstreet", __name__)
 @jwt_required()
 def request_listings():
     try:
-        #Parse JSON data
         data = request.get_json(force=True)
-        #Retrieve the user from the jwt token
         token = request.headers.get("Authorization")
         user = get_user_from_jwt(token)
         user_id = get_id_from_jwt(token)
-        result = kalibrr_scrap.delay(user_id, user, data).get(timeout=30)
-        return result
+        task = kalibrr_scrap.delay(user_id, user, data)
+        return jsonify({"task_id": task.id})
 
     except Exception as e:
         return jsonify({"error": f"An unexpected error occurred   {e}"})
@@ -37,8 +35,8 @@ def request_listings():
         token = request.headers.get("Authorization")
         user = get_user_from_jwt(token)
         user_id = get_id_from_jwt(token)
-        result = jobstreet_scrap.delay(user_id, user, data).get(timeout=3000)
-        return result
+        task = jobstreet_scrap.delay(user_id, user, data)
+        return jsonify({"task_id": task.id})
 
     except Exception as e:
         return jsonify({"error": f"An unexpected error occurred   {e}"})
