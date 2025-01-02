@@ -49,6 +49,8 @@ def jobstreet_scrap(user_id, user_username, data):
     return _perform_scraping(user_id, user_username, data, task_id, "jobstreet")
 
 
-@shared_task
-def example_task():
-    print("Hello World")
+@celery.task(name='tasks.example_task')
+def example_task(operation_id, username, data):
+    """Automated scheduled task for scraping"""
+    print(data)
+
