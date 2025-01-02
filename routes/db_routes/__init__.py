@@ -1,2 +1,3 @@
 from .mongo_users_route import user_bp
 from .mongo_operations_route import operation_bp
+from .mongo_automated_operations_route import automated_scrap_operation_bp
