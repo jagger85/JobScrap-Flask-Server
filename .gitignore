@@ -8,3 +8,4 @@ output_samples/
 output/
 .cursorrules
 brightdata/outputs
+dump.rdb
