@@ -1,6 +1,15 @@
 import redis
 import json
 from constants import environment, MessageType, PlatformStates
+from datetime import datetime
+
+redis_redbeat_client = redis.StrictRedis(
+    host=environment["redis_host"],  
+    port=int(environment["redis_port"]),  
+    db=1,
+    decode_responses=True,
+)
+
 
 redis_client = redis.StrictRedis(
     host=environment["redis_host"],  
@@ -35,3 +44,6 @@ def update_operation_info_message(user_id, task_id, message):
         "task_id": task_id,
         "message": message 
     }))
+
+
+
