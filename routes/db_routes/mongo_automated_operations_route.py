@@ -1,6 +1,5 @@
 from flask import Blueprint, request, jsonify
 from flask_cors import cross_origin
-from services import automated_scrap_operation_model
 from middlewares import user_or_admin_required
 from helpers import get_user_from_jwt
 from redbeat import RedBeatSchedulerEntry

@@ -1,7 +1,6 @@
 from celery import Celery
 from constants import environment
 from celery.schedules import crontab
-from services import automated_scrap_operation_model
 
 def make_celery():
     celery = Celery(
