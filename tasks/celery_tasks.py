@@ -5,6 +5,8 @@ from constants import MessageType, PlatformStates
 from services import operation_model, send_socket_message, update_operation_status, update_operation_info_message
 from celery.schedules import crontab
 from celery import shared_task
+from datetime import datetime
+from services import redis_client
 
 def _perform_scraping(user_id, user_username, data, task_id, platform):
     """Base function for Kalibrr scraping logic"""
@@ -49,8 +51,37 @@ def jobstreet_scrap(user_id, user_username, data):
     return _perform_scraping(user_id, user_username, data, task_id, "jobstreet")
 
 
-@celery.task(name='tasks.example_task')
-def example_task(operation_id, username, data):
+@shared_task
+def example_task(**kwargs):
     """Automated scheduled task for scraping"""
-    print(data)
-
+    try:
+        schedule_id = kwargs.get('schedule_id')
+        if not schedule_id:
+            raise ValueError("No schedule_id provided")
+        
+        # Get operation data directly from kwargs
+        platform = kwargs.get('platform')
+        keywords = kwargs.get('keywords')
+        date_range = kwargs.get('dateRange')
+        username = kwargs.get('username')
+        
+        # Validate required fields
+        required_fields = ['platform', 'keywords', 'dateRange', 'username']
+        missing_fields = [field for field in required_fields if not kwargs.get(field)]
+        
+        if missing_fields:
+            raise ValueError(f"Missing required fields: {missing_fields}")
+        
+        print(f"Processing task - ID: {schedule_id}")
+        print(f"Platform: {platform}")
+        print(f"Keywords: {keywords}")
+        print(f"Date Range: {date_range}")
+        print(f"Username: {username}")
+        
+        # Your scraping logic here
+        
+        return "Success"
+        
+    except Exception as e:
+        print(f"Error in example_task: {str(e)}")
+        return f"Failed - {str(e)}"
