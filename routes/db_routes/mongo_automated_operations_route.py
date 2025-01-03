@@ -48,16 +48,15 @@ def create_automated_scrap_operation():
         data = request.get_json(force=True)
         token = request.headers.get("Authorization")
         username = get_user_from_jwt(token)
-        schedule_id = str(uuid4())
-        
+        key_id = str(uuid4())
+    
         # Create the scheduled task with operation data in kwargs
         interval = crontab(minute=f'*/{data["frequency"]}')
         entry = RedBeatSchedulerEntry(
-            schedule_id,
+            key_id,
             "tasks.celery_tasks.example_task",
             interval,
             kwargs={
-                "schedule_id": schedule_id,
                 "platform": str(data.get('platform', '')),
                 "username": str(username),
                 "keywords": str(data.get('keywords', '')),
@@ -69,7 +68,7 @@ def create_automated_scrap_operation():
         
         return jsonify({
             "message": "Automated scrap operation created successfully",
-            "schedule_id": schedule_id
+            "key_id": key_id
         }), 200
         
     except Exception as e:

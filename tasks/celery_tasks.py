@@ -55,10 +55,6 @@ def jobstreet_scrap(user_id, user_username, data):
 def example_task(**kwargs):
     """Automated scheduled task for scraping"""
     try:
-        schedule_id = kwargs.get('schedule_id')
-        if not schedule_id:
-            raise ValueError("No schedule_id provided")
-        
         # Get operation data directly from kwargs
         platform = kwargs.get('platform')
         keywords = kwargs.get('keywords')
@@ -71,14 +67,6 @@ def example_task(**kwargs):
         
         if missing_fields:
             raise ValueError(f"Missing required fields: {missing_fields}")
-        
-        print(f"Processing task - ID: {schedule_id}")
-        print(f"Platform: {platform}")
-        print(f"Keywords: {keywords}")
-        print(f"Date Range: {date_range}")
-        print(f"Username: {username}")
-        
-        # Your scraping logic here
         
         return "Success"
         
