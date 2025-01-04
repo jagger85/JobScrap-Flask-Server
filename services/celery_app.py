@@ -15,9 +15,7 @@ def make_celery():
         redbeat_lock_key='redbeat:lock',
         redbeat_lock_timeout=90,
     )
-    
-    print("RedBeat Redis URL:", environment["redbeat_redis_url"])
-    
+        
     return celery
 
 celery = make_celery()

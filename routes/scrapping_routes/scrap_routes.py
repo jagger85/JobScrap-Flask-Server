@@ -5,7 +5,7 @@ from constants import environment, MessageType, PlatformStates
 from scrappers import kalibrr as kalibrr_client
 import jwt
 from helpers import get_user_from_jwt, get_id_from_jwt
-from services import operation_model, send_socket_message
+from services import operation_model
 import json
 from tasks import kalibrr_scrap, jobstreet_scrap
 

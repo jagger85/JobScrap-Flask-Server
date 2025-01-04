@@ -1,7 +1,6 @@
 from flask import Blueprint
 from flask_sock import Sock
-import uuid
-from services import redis_client
+from services import websocket_pubsub
 from helpers import get_id_from_jwt, get_user_from_jwt
 from services import user_model
 import json
@@ -19,7 +18,7 @@ def init_sock(app):
 
     @sock.route('/api/socket')
     def connect(ws):
-        pubsub = redis_client.pubsub()
+        pubsub = websocket_pubsub.pubsub()
         
         def redis_listener():
             while True:
@@ -36,7 +35,7 @@ def init_sock(app):
                 if message_type == "login":
                     user_id = get_id_from_jwt(message)
                     user_username = user_model.get_user_with_id(user_id)['username']
-                    redis_client.set(f"client:{user_id}", "connected")
+                    websocket_pubsub.set(f"client:{user_id}", "connected")
                     pubsub.subscribe(f"ws:client:{user_id}")
                     
                     # Start Redis listener in a separate thread

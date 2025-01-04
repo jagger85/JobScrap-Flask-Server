@@ -4,7 +4,7 @@ from constants import DateRange
 from models.JobListing import JobListing
 from logger.logger import get_logger
 from bs4 import BeautifulSoup
-from services import update_operation_listings_count
+from services import websocket_pubsub
 
 class KalibrrAPIClient:
     """
@@ -158,7 +158,7 @@ class KalibrrAPIClient:
                     
                     # Update count for each successful listing
                     if self.user_id and self.task_id:
-                        update_operation_listings_count(self.user_id, self.task_id, len(all_listings) + len(filtered_listings))
+                        websocket_pubsub.update_operation_listings_count(self.user_id, self.task_id, len(all_listings) + len(filtered_listings))
                     
                 if not filtered_listings:
                     self.log.debug("No listings passed the date filter")
