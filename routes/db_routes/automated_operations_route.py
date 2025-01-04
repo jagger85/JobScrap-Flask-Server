@@ -4,7 +4,7 @@ from middlewares import user_or_admin_required
 from helpers import get_user_from_jwt
 from redbeat import RedBeatSchedulerEntry
 from celery.schedules import crontab
-from services.redis import redis_redbeat_client as r
+from services import redbeat_scheduler
 from services import celery
 from uuid import uuid4
 import json
@@ -16,7 +16,7 @@ automated_scrap_operation_bp = Blueprint("automated_scrap_operation", __name__)
 @user_or_admin_required
 def get_all_automated_scrap_operations():
     tasks = []
-    task_keys = [key for key in r.scan_iter('redbeat:*') 
+    task_keys = [key for key in redbeat_scheduler.scan_iter('redbeat:*') 
                  if not ('::' in key or ':lock' in key)]
     
     for key in task_keys:
