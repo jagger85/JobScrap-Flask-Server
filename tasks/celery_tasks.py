@@ -10,6 +10,7 @@ from celery import shared_task
 def _perform_scraping(user_id, user_username, data, task_id, platform):
     """Base function for Kalibrr scraping logic"""
     websocket_pubsub.update_operation_status(user_id, task_id, 'Processing')
+    websocket_pubsub.update_operation_info_message(user_id, task_id, "Processing your request, this may take a few minutes…")
     operation_id = operation_model.create_operation({
         "user": user_username, 
         "platform": platform, 

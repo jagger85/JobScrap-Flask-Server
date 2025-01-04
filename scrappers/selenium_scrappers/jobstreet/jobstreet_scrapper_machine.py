@@ -26,7 +26,7 @@ class JobstreetScrapperMachine(BaseScrapStateMachine):
         >>> scrapper = JobstreetScrapperMachine()
         >>> listings = scrapper.get_job_listings()
     """
-    def __init__(self, days: str = "1", keywords: str = None , task_id: str = None, user_id: str = None):
+    def __init__(self, days: str = "1", keywords: str = None , user_id: str = None, task_id: str = None):
         global log
         log = get_logger("Jobstreet")
         super().__init__(log)
