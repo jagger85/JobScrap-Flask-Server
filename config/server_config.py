@@ -8,7 +8,7 @@ class BaseConfig:
     
     # Common CORS base configuration
     CORS_BASE_CONFIG = {
-        "methods": ["GET", "POST", "OPTIONS"],
+        "methods": ["GET", "POST", "DELETE", "OPTIONS", "PUT"],
         "allow_headers": ["Content-Type", "Authorization"],
         "supports_credentials": True,
     }

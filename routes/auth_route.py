@@ -14,73 +14,55 @@ from constants import environment
 from services import user_model
 import bcrypt
 from services import user_model
-logging_bp = Blueprint("logging", __name__)
+from helpers import get_user_from_jwt, get_role_from_jwt, create_long_lived_jwt_token, create_short_lived_jwt_token, validate_token, get_id_from_jwt
 
-@logging_bp.route("/api/login", methods=["POST"])
+login_bp = Blueprint("login", __name__)
+@login_bp.route("/api/auth/login", methods=["POST"])
 def login():
-    """
-    Handle user login requests and generate JWT tokens.
 
-    This endpoint validates user credentials against environment variables
-    and generates a JWT token for authenticated users.
-
-    Request Body:
-        JSON object containing:
-            - username (str): User's username
-            - password (str): User's password
-
-    Returns:
-        tuple: JSON response and HTTP status code.
-            Success (200):
-                {
-                    "access_token": "jwt_token_string"
-                }
-            Missing Fields (400):
-                {
-                    "msg": "Missing username or password"
-                }
-            Invalid Credentials (401):
-                {
-                    "msg": "Invalid credentials"
-                }
-
-    Raises:
-        None: All exceptions are handled internally.
-
-    Example:
-        >>> # Valid login request
-        >>> response = requests.post('/login', json={
-        >>>     'username': 'admin',
-        >>>     'password': 'secret'
-        >>> })
-        >>> print(response.json())
-        {'access_token': 'eyJ0eXAiOiJKV1QiLCJhbG...'}
-    """
     # Get username and password from the JSON request body
     username = request.json.get("username")
     password = request.json.get("password")
+    remember_me = request.json.get("remember_me")
 
     # Check for missing fields
     if not username or not password:
-        return jsonify({"msg": "Missing username or password"}), 400
+        return jsonify({"message": "Missing username or password"}), 401
 
-    
     user = user_model.find_by_username(username)
 
     # Check if user exists before validating password
     if user is None:
-        return jsonify({"msg": "Invalid credentials"}), 401
+        return jsonify({"message": "Invalid credentials"}), 401
 
     is_valid_password = bcrypt.checkpw(password.encode('utf-8'), user['password'].encode('utf-8'))
     
-
     if is_valid_password:
         username = user['username']
         user_id = user_model.get_id_with_username(username)
         role = user_model.get_role_with_username(username)
-        # Generate a JWT access token
-        access_token = create_access_token(identity=username, additional_claims={"role": role, "username": username, "id": user_id}, expires_delta=None)
-        return jsonify(access_token=access_token), 200
+        # Generate a JWT access token based on remember me 
+        if remember_me:
+            token = create_long_lived_jwt_token(username, role, user_id)
+            return jsonify({"token": token, "username": username, "role": role, "user_id": user_id}), 200
+        
+        else:
+            token = create_short_lived_jwt_token(username, role, user_id)
+            return jsonify({"token": token, "username": username, "role": role, "user_id": user_id}), 200
     else:
-        return jsonify({"msg": "Invalid credentials"}), 401
+        return jsonify({"message": "Invalid credentials"}), 401
 
+
+validate_jwt_token_bp = Blueprint("validate_jwt_login", __name__)
+@validate_jwt_token_bp.route('/api/auth/validate-token', methods=["GET"])
+def validate():
+    token = request.headers.get("Authorization")
+    if validate_token(token):
+        username = get_user_from_jwt(token)
+        role = get_role_from_jwt(token)
+        user_id = get_id_from_jwt(token)
+        return jsonify({"token": token, "username": username, "role": role, "user_id": user_id}), 200
+
+    else:
+        return jsonify({"message": "Invalid credentials"}), 401
+             

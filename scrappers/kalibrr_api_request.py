@@ -4,6 +4,7 @@ from constants import DateRange
 from models.JobListing import JobListing
 from logger.logger import get_logger
 from bs4 import BeautifulSoup
+from services import update_operation_listings_count
 
 class KalibrrAPIClient:
     """
@@ -30,14 +31,15 @@ class KalibrrAPIClient:
         >>> listings = client.start()
     """
 
-    def __init__(self, days: str, keywords: str = None):
+    def __init__(self, days: str, keywords: str = None, user_id: str = None, task_id: str = None):
         self.days = int(days)
         self.log = get_logger("Kalibrr")
         self.base_url = "https://www.kalibrr.com/kjs/job_board/search"
         self.start_date = None
         self.end_date = None
         self.get_date_range(self.days)
-
+        self.user_id = user_id
+        self.task_id = task_id
         self.keywords = keywords
         self.log.info("Retrieving job listings from Kalibrr")
 
@@ -154,6 +156,10 @@ class KalibrrAPIClient:
                     job_listing = self.map_kalibrr_listing_to_job_listing(listing)
                     filtered_listings.append(job_listing)
                     
+                    # Update count for each successful listing
+                    if self.user_id and self.task_id:
+                        update_operation_listings_count(self.user_id, self.task_id, len(all_listings) + len(filtered_listings))
+                    
                 if not filtered_listings:
                     self.log.debug("No listings passed the date filter")
                     break
@@ -167,7 +173,6 @@ class KalibrrAPIClient:
                 raise
             
         self.log.info(f"Total listings found on Kalibrr: {len(all_listings)}")
-
         return all_listings
 
     def fetch_listings(self, limit=15, offset=0):
