@@ -32,3 +32,14 @@ class UserModel(BaseModel):
     def get_role_with_username(self, username):
         user = self.collection.find_one({"username": username}, {"_id": 0, "role": 1})
         return user["role"] if user else None
+
+    def update_password(self, username, new_password):
+        try:
+            result = self.collection.update_one(
+                {"username": username},
+                {"$set": {"password": new_password}}
+            )
+            return result.modified_count > 0
+        except Exception as e:
+            print(f"Error updating password: {e}")
+            return False

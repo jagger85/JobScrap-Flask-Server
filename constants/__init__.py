@@ -18,7 +18,8 @@ environment = {
     "redis_port": os.getenv("REDIS_PORT"),
     "redis_db": os.getenv("REDIS_DB"),
     "celery_broker_url": os.getenv("CELERY_BROKER_URL"),
-    "celery_result_backend": os.getenv("CELERY_RESULT_BACKEND")
+    "celery_result_backend": os.getenv("CELERY_RESULT_BACKEND"),
+    "redbeat_redis_url": os.getenv("REDBEAT_REDIS_URL")
 }
 
 kalibrr_url = "https://www.kalibrr.com/home/co/Philippines/i/it-and-software?sort=Freshness"

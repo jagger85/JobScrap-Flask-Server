@@ -6,7 +6,7 @@ from datetime import datetime, timedelta
 import re
 from constants import DateRange, jobstreet_url
 from logger.logger import get_logger
-
+from services import update_operation_listings_count, update_operation_info_message
 
 
 class JobstreetScrapperMachine(BaseScrapStateMachine):
@@ -26,17 +26,19 @@ class JobstreetScrapperMachine(BaseScrapStateMachine):
         >>> scrapper = JobstreetScrapperMachine()
         >>> listings = scrapper.get_job_listings()
     """
-    def __init__(self, days: str = "1", keywords: str = None ):
+    def __init__(self, days: str = "1", keywords: str = None , task_id: str = None, user_id: str = None):
         global log
         log = get_logger("Jobstreet")
         super().__init__(log)
         self.days = days
         self.keywords = keywords
+        self.task_id = task_id
+        self.user_id = user_id
         # Set initial state to PROCESSING when starting scraping
 
         self.driver.get(self.build_jobstreet_url())
         log.info("Retrieving job listings from Jobstreet, this may take a few minutes…")
-
+        update_operation_info_message(self.user_id, self.task_id, "Retrieving job listings from Jobstreet, this may take a few minutes…")
     def build_keywords(self) -> str:
         if self.keywords:
             # Replace spaces with hyphens and append "-jobs"
@@ -93,7 +95,7 @@ class JobstreetScrapperMachine(BaseScrapStateMachine):
             >>> print(f"Found {len(listings)} jobs")
         """
         try:
-            navigator = JobstreetNavigator(logger=log, driver=self.driver)
+            navigator = JobstreetNavigator(logger=log, driver=self.driver, user_id=self.user_id, task_id=self.task_id)
             self.listings = navigator.request_listings()
             if not self.listings:
                 log.warning("No listings found")
@@ -101,7 +103,7 @@ class JobstreetScrapperMachine(BaseScrapStateMachine):
             return self.listings
         except Exception as e:
             log.error(f"Error fetching job listings: {str(e)}")
-            self.state_manager.set_platform_state(Platforms.JOBSTREET, PlatformStates.ERROR)
+            update_operation_info_message(self.user_id, self.task_id, "Error fetching job listings: " + str(e))
             return []
 
     def process_job_listings(self) -> List[JobListing]:

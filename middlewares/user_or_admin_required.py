@@ -3,7 +3,7 @@ import jwt
 from constants import environment
 from constants import UserRole
 from flask import request, jsonify
-from helpers import get_role
+from helpers import get_role_from_jwt
 
 def user_or_admin_required(f):
     @wraps(f)
@@ -13,7 +13,7 @@ def user_or_admin_required(f):
             return jsonify({"msg": "Missing token"}), 401
         
         try:
-            role = get_role(token)
+            role = get_role_from_jwt(token)
             # Decode the JWT token
             if role not in [UserRole.USER, UserRole.ADMIN]:
                 return jsonify({"msg": "User or admin access required"}), 403
