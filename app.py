@@ -39,7 +39,6 @@ def register_error_handlers(app: Flask) -> None:
 
     @app.errorhandler(500)
     def internal_server_error(e):
-        log.error(f"Internal server error: {str(e)}")
         return {"error": "Internal server error", "code": 500}, 500
 
 app = create_app()
