@@ -2,15 +2,14 @@ from flask import jsonify
 from services.celery_app import celery
 from scrappers import kalibrr, jobstreet
 from constants import MessageType, PlatformStates
-from services import operation_model, send_socket_message, update_operation_status, update_operation_info_message
+from services import operation_model
+from services import websocket_pubsub
 from celery.schedules import crontab
 from celery import shared_task
-from datetime import datetime
-from services import redis_client
 
 def _perform_scraping(user_id, user_username, data, task_id, platform):
     """Base function for Kalibrr scraping logic"""
-    update_operation_status(user_id, task_id, 'Processing')
+    websocket_pubsub.update_operation_status(user_id, task_id, 'Processing')
     operation_id = operation_model.create_operation({
         "user": user_username, 
         "platform": platform, 
@@ -26,8 +25,8 @@ def _perform_scraping(user_id, user_username, data, task_id, platform):
 
     operation_model.set_listings(operation_id, [job.to_dict() for job in job_listings])
     operation_model.set_result(operation_id, True)
-    update_operation_status(user_id, task_id, 'Completed')
-    update_operation_info_message(user_id, task_id, "Operation completed")
+    websocket_pubsub.update_operation_status(user_id, task_id, 'Completed')
+    websocket_pubsub.update_operation_info_message(user_id, task_id, "Operation completed")
     
     return {
         'status': 'ok',
