@@ -2,32 +2,74 @@ from flask import jsonify
 from services.celery_app import celery
 from scrappers import kalibrr, jobstreet
 from constants import MessageType, PlatformStates
-from services import operation_model, send_socket_message
+from services import operation_model, send_socket_message, update_operation_status, update_operation_info_message
+from celery.schedules import crontab
+from celery import shared_task
+from datetime import datetime
+from services import redis_client
+
+def _perform_scraping(user_id, user_username, data, task_id, platform):
+    """Base function for Kalibrr scraping logic"""
+    update_operation_status(user_id, task_id, 'Processing')
+    operation_id = operation_model.create_operation({
+        "user": user_username, 
+        "platform": platform, 
+        "time_range": data["days"], 
+        "keywords": data["keywords"],
+        "task_id": task_id
+    })
+    
+    if platform == "kalibrr":   
+        job_listings = kalibrr(data["days"], data["keywords"], user_id, task_id).start()
+    elif platform == "jobstreet":
+        job_listings = jobstreet(data["days"], data["keywords"], user_id, task_id).start()
+
+    operation_model.set_listings(operation_id, [job.to_dict() for job in job_listings])
+    operation_model.set_result(operation_id, True)
+    update_operation_status(user_id, task_id, 'Completed')
+    update_operation_info_message(user_id, task_id, "Operation completed")
+    
+    return {
+        'status': 'ok',
+        'message': 'Operation completed successfully',
+        'operation_id': operation_id,
+        'listings_count': len(job_listings)
+    }
+
 
 @celery.task
 def kalibrr_scrap(user_id, user_username, data):
+    """Triggered task for manual scraping"""
+    task_id = kalibrr_scrap.request.id
+    return _perform_scraping(user_id, user_username, data, task_id, "kalibrr")
 
-    send_socket_message(user_id, MessageType.PLATFORM_STATE, PlatformStates.PROCESSING)
-    operation_id = operation_model.create_operation({"user": user_username, "platform": "kalibrr", "time_range": data["days"], "keywords": data["keywords"] })
-    job_listings = kalibrr(data["days"],data["keywords"]).start()
-    operation_model.set_listings(operation_id,[job.to_dict() for job in job_listings])
-    operation_model.set_result(operation_id, True)
-
-    return {
-        'status': 'ok',
-        'message': 'Lol is working'
-    }
 
 @celery.task
 def jobstreet_scrap(user_id, user_username, data):
+    """Triggered task for manual scraping"""
+    task_id = jobstreet_scrap.request.id
+    return _perform_scraping(user_id, user_username, data, task_id, "jobstreet")
 
-    send_socket_message(user_id, MessageType.PLATFORM_STATE, PlatformStates.PROCESSING)
-    operation_id = operation_model.create_operation({"user": user_username, "platform": "jobstreet", "time_range": data["days"], "keywords": data["keywords"] })
-    job_listings = jobstreet(data["days"],data["keywords"]).start()
-    operation_model.set_listings(operation_id,[job.to_dict() for job in job_listings])
-    operation_model.set_result(operation_id, True)
 
-    return {
-        'status': 'ok',
-        'message': 'Lol is working'
-    }
+@shared_task
+def example_task(**kwargs):
+    """Automated scheduled task for scraping"""
+    try:
+        # Get operation data directly from kwargs
+        platform = kwargs.get('platform')
+        keywords = kwargs.get('keywords')
+        date_range = kwargs.get('dateRange')
+        username = kwargs.get('username')
+        
+        # Validate required fields
+        required_fields = ['platform', 'keywords', 'dateRange', 'username']
+        missing_fields = [field for field in required_fields if not kwargs.get(field)]
+        
+        if missing_fields:
+            raise ValueError(f"Missing required fields: {missing_fields}")
+        
+        return "Success"
+        
+    except Exception as e:
+        print(f"Error in example_task: {str(e)}")
+        return f"Failed - {str(e)}"
