@@ -3,7 +3,7 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.common.exceptions import NoSuchElementException
-from services import update_operation_listings_count
+from services import websocket_pubsub
 
 class JobstreetNavigator:
     """
@@ -80,7 +80,7 @@ class JobstreetNavigator:
                         listing_details['listing_id'] = listing_id
                         self.job_listings.append(listing_details)
                         log.info(f"Retrieved {len(self.job_listings)} listings from Jobstreet")
-                        update_operation_listings_count(self.user_id, self.task_id, len(self.job_listings))
+                        websocket_pubsub.update_operation_listings_count(self.user_id, self.task_id, len(self.job_listings))
                         log.debug(f"Successfully collected details for listing {listing_id}")
                     else:
                         log.debug(f"Failed to collect details for listing {listing_id}")

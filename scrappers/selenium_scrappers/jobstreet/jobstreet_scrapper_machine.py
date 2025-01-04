@@ -6,7 +6,7 @@ from datetime import datetime, timedelta
 import re
 from constants import DateRange, jobstreet_url
 from logger.logger import get_logger
-from services import update_operation_listings_count, update_operation_info_message
+from services import websocket_pubsub
 
 
 class JobstreetScrapperMachine(BaseScrapStateMachine):
@@ -26,7 +26,7 @@ class JobstreetScrapperMachine(BaseScrapStateMachine):
         >>> scrapper = JobstreetScrapperMachine()
         >>> listings = scrapper.get_job_listings()
     """
-    def __init__(self, days: str = "1", keywords: str = None , task_id: str = None, user_id: str = None):
+    def __init__(self, days: str = "1", keywords: str = None , user_id: str = None, task_id: str = None):
         global log
         log = get_logger("Jobstreet")
         super().__init__(log)
@@ -38,7 +38,7 @@ class JobstreetScrapperMachine(BaseScrapStateMachine):
 
         self.driver.get(self.build_jobstreet_url())
         log.info("Retrieving job listings from Jobstreet, this may take a few minutes…")
-        update_operation_info_message(self.user_id, self.task_id, "Retrieving job listings from Jobstreet, this may take a few minutes…")
+        websocket_pubsub.update_operation_info_message(self.user_id, self.task_id, "Retrieving job listings from Jobstreet, this may take a few minutes…")
     def build_keywords(self) -> str:
         if self.keywords:
             # Replace spaces with hyphens and append "-jobs"
@@ -103,7 +103,7 @@ class JobstreetScrapperMachine(BaseScrapStateMachine):
             return self.listings
         except Exception as e:
             log.error(f"Error fetching job listings: {str(e)}")
-            update_operation_info_message(self.user_id, self.task_id, "Error fetching job listings: " + str(e))
+            websocket_pubsub.update_operation_info_message(self.user_id, self.task_id, "Error fetching job listings: " + str(e))
             return []
 
     def process_job_listings(self) -> List[JobListing]:
