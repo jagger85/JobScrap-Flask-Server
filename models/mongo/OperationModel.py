@@ -13,12 +13,27 @@ class OperationModel(BaseModel):
             data["created_at"] = datetime.utcnow()
             return self.create(data)
     
-    def get_all_operations(self):
-        operations = list(self.collection.find({}))
-        # Convert ObjectId to string for each document
+    def get_all_operations(self, limit=10, cursor=None, sort_order='desc'):
+        query = {}
+        if cursor:
+            query['_id'] = {'$lt': ObjectId(cursor)}
+        
+        # Get one more than limit to determine if there's a next page
+        operations = list(self.collection.find(query)
+                        .sort('_id', -1 if sort_order == 'desc' else 1)  # Sort by _id descending
+                        .limit(limit + 1))
+        
+        has_next = len(operations) > limit
+        operations = operations[:limit]  # Remove the extra item
+        
+        # Convert ObjectIds to strings
         for op in operations:
             op['_id'] = str(op['_id'])
-        return operations
+        
+        # Only set next_cursor if we have operations and there's a next page
+        next_cursor = operations[-1]['_id'] if operations and has_next else None
+        
+        return operations, next_cursor
         
     def set_listings(self, document_id, listings):
         self.collection.update_one({"_id": ObjectId(document_id)}, {"$set": {"listings": listings}})
