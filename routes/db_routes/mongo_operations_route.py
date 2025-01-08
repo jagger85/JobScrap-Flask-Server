@@ -7,6 +7,26 @@ operation_bp = Blueprint("operation", __name__)
 
 @operation_bp.route("/api/operations", methods=["GET"])
 @user_or_admin_required
+def get_operations():
+    limit = int(request.args.get('limit', 10))
+    cursor = request.args.get('cursor', None)
+
+    sort_order = request.args.get('sort', 'desc')  # Default to descending
+    
+    operations, next_cursor = operation_model.get_all_operations(
+        limit=limit, 
+        cursor=cursor,
+        sort_order=sort_order
+    )
+    
+    return jsonify({
+        'operations': operations,
+        'nextCursor': next_cursor,
+        'limit': limit
+    }), 200
+
+@operation_bp.route("/api/operations/all", methods=["GET"])
+@user_or_admin_required
 def get_all_operations():
     operations = operation_model.get_all_operations()
     return jsonify(operations), 200
