@@ -13,7 +13,7 @@ def get_operations():
 
     sort_order = request.args.get('sort', 'desc')  # Default to descending
     
-    operations, next_cursor = operation_model.get_all_operations(
+    operations, next_cursor = operation_model.get_operations(
         limit=limit, 
         cursor=cursor,
         sort_order=sort_order
@@ -45,3 +45,4 @@ def get_operation_by_task_id(task_id):
         operation['_id'] = str(operation['_id'])
         return jsonify(operation), 200
     return jsonify({"message": "Operation not found"}), 404
+

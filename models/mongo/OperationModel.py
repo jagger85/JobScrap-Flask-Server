@@ -13,7 +13,12 @@ class OperationModel(BaseModel):
             data["created_at"] = datetime.utcnow()
             return self.create(data)
     
-    def get_all_operations(self, limit=10, cursor=None, sort_order='desc'):
+    
+    def get_all_operations(self):
+        return list(self.collection.find({}, {"_id": 0}))
+    
+    
+    def get_operations(self, limit=10, cursor=None, sort_order='desc'):
         query = {}
         if cursor:
             query['_id'] = {'$lt': ObjectId(cursor)}
