@@ -83,7 +83,7 @@ def linkedin_scrap(user_id, user_username, data):
 
 @shared_task
 def example_task(**kwargs):
-    """Automated scheduled task for scraping"""
+    """Scheduled task for scraping"""
     try:
         # Get operation data directly from kwargs
         platform = kwargs.get('platform')

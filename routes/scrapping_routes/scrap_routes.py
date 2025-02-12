@@ -1,8 +1,5 @@
 from flask import Blueprint, request, jsonify
 from flask_jwt_extended import jwt_required
-from flask_cors import cross_origin
-from middlewares import user_or_admin_required
-from constants import environment, MessageType, PlatformStates
 from scrappers import kalibrr as kalibrr_client
 import jwt
 from helpers import get_user_from_jwt, get_id_from_jwt

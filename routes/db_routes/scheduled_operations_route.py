@@ -10,11 +10,11 @@ from uuid import uuid4
 import json
 from datetime import datetime
 
-automated_scrap_operation_bp = Blueprint("automated_scrap_operation", __name__)
+scheduled_scrap_operation_bp = Blueprint("scheduled_scrap_operation", __name__)
 
-@automated_scrap_operation_bp.route("/api/automated_scrap_operations", methods=["GET"])
+@scheduled_scrap_operation_bp.route("/api/scheduled_scrap_operations", methods=["GET"])
 @user_or_admin_required
-def get_all_automated_scrap_operations():
+def get_all_scheduled_scrap_operations():
     tasks = []
     task_keys = [key for key in redbeat_scheduler.scan_iter('redbeat:*') 
                  if not ('::' in key or ':lock' in key)]
@@ -41,9 +41,9 @@ def get_all_automated_scrap_operations():
     
     return jsonify(tasks), 200
 
-@automated_scrap_operation_bp.route("/api/automated_scrap_operations", methods=["POST"])
+@scheduled_scrap_operation_bp.route("/api/scheduled_scrap_operations", methods=["POST"])
 @user_or_admin_required
-def create_automated_scrap_operation():
+def create_scheduled_scrap_operation():
     try:
         data = request.get_json(force=True)
         token = request.headers.get("Authorization")
@@ -67,46 +67,46 @@ def create_automated_scrap_operation():
         entry.save()
         
         return jsonify({
-            "message": "Automated scrap operation created successfully",
+            "message": "Scheduled scrap operation created successfully",
             "key_id": key_id
         }), 200
         
     except Exception as e:
-        print(f"Error creating automated scrap operation: {str(e)}")
+        print(f"Error creating scheduled scrap operation: {str(e)}")
         return jsonify({"error": str(e)}), 500
 
-@automated_scrap_operation_bp.route("/api/automated_scrap_operations/<id>", methods=["DELETE"])
+@scheduled_scrap_operation_bp.route("/api/scheduled_scrap_operations/<id>", methods=["DELETE"])
 @user_or_admin_required
-def delete_automated_scrap_operation(id):
+def delete_scheduled_scrap_operation(id):
     try:
         # Delete the task from Redis
         entry = RedBeatSchedulerEntry.from_key(f'redbeat:{id}', app=celery)
         entry.delete()  # Remove the task from Redis
-        return jsonify({"message": "Automated scrap operation deleted successfully"}), 200
+        return jsonify({"message": "Scheduled scrap operation deleted successfully"}), 200
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
-@automated_scrap_operation_bp.route("/api/automated_scrap_operations/<id>/activate", methods=["PUT"])
+@scheduled_scrap_operation_bp.route("/api/scheduled_scrap_operations/<id>/activate", methods=["PUT"])
 @user_or_admin_required
-def activate_automated_scrap_operation(id):
+def activate_scheduled_scrap_operation(id):
     # Activate the task in Redis
     try:
         entry = RedBeatSchedulerEntry.from_key(f'redbeat:{id}', app=celery)
         entry.enabled = True  # Set the task to enabled
         entry.save()  # Save the changes to Redis
-        return jsonify({"message": "Automated scrap operation activated successfully"}), 200
+        return jsonify({"message": "Scheduled scrap operation activated successfully"}), 200
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
-@automated_scrap_operation_bp.route("/api/automated_scrap_operations/<id>/deactivate", methods=["PUT"])
+@scheduled_scrap_operation_bp.route("/api/scheduled_scrap_operations/<id>/deactivate", methods=["PUT"])
 @user_or_admin_required
-def deactivate_automated_scrap_operation(id):
+def deactivate_scheduled_scrap_operation(id):
     # Deactivate the task in Redis
     try:
         entry = RedBeatSchedulerEntry.from_key(f'redbeat:{id}', app=celery)
         entry.enabled = False  # Set the task to disabled
         entry.save()  # Save the changes to Redis
-        return jsonify({"message": "Automated scrap operation deactivated successfully"}), 200
+        return jsonify({"message": "Scheduled scrap operation deactivated successfully"}), 200
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
