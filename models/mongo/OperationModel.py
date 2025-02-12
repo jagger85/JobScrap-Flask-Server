@@ -18,11 +18,14 @@ class OperationModel(BaseModel):
         return list(self.collection.find({}, {"_id": 0}))
     
     
-    def get_operations(self, limit=10, cursor=None, sort_order='desc'):
+    def get_operations(self, limit=10, cursor=None, sort_order='desc', platform=None, user=None):
         query = {}
         if cursor:
             query['_id'] = {'$lt': ObjectId(cursor)}
-        
+        if platform:
+            query['platform'] = platform
+        if user:
+            query['user'] = user
         # Get one more than limit to determine if there's a next page
         operations = list(self.collection.find(query)
                         .sort('_id', -1 if sort_order == 'desc' else 1)  # Sort by _id descending

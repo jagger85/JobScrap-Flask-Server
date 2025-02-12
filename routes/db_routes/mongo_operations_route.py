@@ -12,11 +12,15 @@ def get_operations():
     cursor = request.args.get('cursor', None)
 
     sort_order = request.args.get('sort', 'desc')  # Default to descending
-    
+    platform = request.args.get('platform', None)  
+    user = request.args.get('user', None) 
+
     operations, next_cursor = operation_model.get_operations(
         limit=limit, 
         cursor=cursor,
-        sort_order=sort_order
+        sort_order=sort_order,
+        platform=platform,
+        user=user
     )
     
     return jsonify({
