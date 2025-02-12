@@ -13,6 +13,7 @@ def get_operations():
     sort_order = request.args.get('sort', 'desc')  # Default to descending
     platform = request.args.get('platform', None)  
     user = request.args.get('user', None) 
+    search = request.args.get('search', None)
 
 
     operations, next_cursor = operation_model.get_operations(
@@ -20,7 +21,8 @@ def get_operations():
         cursor=cursor,
         sort_order=sort_order,
         platform=platform,
-        user=user
+        user=user,
+        search=search
     )
         
     return jsonify({

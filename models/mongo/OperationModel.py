@@ -18,12 +18,14 @@ class OperationModel(BaseModel):
         return list(self.collection.find({}, {"_id": 0}))
     
     
-    def get_operations(self, limit=10, cursor=None, sort_order='desc', platform=None, user=None):
+    def get_operations(self, limit=10, cursor=None, sort_order='desc', platform=None, user=None, search=None):
         query = {}
         if platform:
             query['platform'] = platform
         if user:
             query['user'] = user
+        if search:
+            query['keywords'] = {'$regex': search, '$options': 'i'} # i for case insensitive
         
         # Handle cursor-based pagination with sort order
         if cursor:
