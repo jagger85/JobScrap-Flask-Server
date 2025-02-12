@@ -10,10 +10,10 @@ operation_bp = Blueprint("operation", __name__)
 def get_operations():
     limit = int(request.args.get('limit', 10))
     cursor = request.args.get('cursor', None)
-
     sort_order = request.args.get('sort', 'desc')  # Default to descending
     platform = request.args.get('platform', None)  
     user = request.args.get('user', None) 
+
 
     operations, next_cursor = operation_model.get_operations(
         limit=limit, 
@@ -22,7 +22,7 @@ def get_operations():
         platform=platform,
         user=user
     )
-    
+        
     return jsonify({
         'operations': operations,
         'nextCursor': next_cursor,
