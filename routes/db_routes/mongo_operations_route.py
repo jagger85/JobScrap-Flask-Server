@@ -10,15 +10,21 @@ operation_bp = Blueprint("operation", __name__)
 def get_operations():
     limit = int(request.args.get('limit', 10))
     cursor = request.args.get('cursor', None)
-
     sort_order = request.args.get('sort', 'desc')  # Default to descending
-    
-    operations, next_cursor = operation_model.get_all_operations(
+    platform = request.args.get('platform', None)  
+    user = request.args.get('user', None) 
+    search = request.args.get('search', None)
+
+
+    operations, next_cursor = operation_model.get_operations(
         limit=limit, 
         cursor=cursor,
-        sort_order=sort_order
+        sort_order=sort_order,
+        platform=platform,
+        user=user,
+        search=search
     )
-    
+        
     return jsonify({
         'operations': operations,
         'nextCursor': next_cursor,
@@ -45,3 +51,4 @@ def get_operation_by_task_id(task_id):
         operation['_id'] = str(operation['_id'])
         return jsonify(operation), 200
     return jsonify({"message": "Operation not found"}), 404
+

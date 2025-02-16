@@ -44,11 +44,16 @@ def login():
         # Generate a JWT access token based on remember me 
         if remember_me:
             token = create_long_lived_jwt_token(username, role, user_id)
-            return jsonify({"token": token, "username": username, "role": role, "user_id": user_id}), 200
-        
         else:
             token = create_short_lived_jwt_token(username, role, user_id)
-            return jsonify({"token": token, "username": username, "role": role, "user_id": user_id}), 200
+            
+        response_data = {
+            "token": token, 
+            "username": username, 
+            "role": role, 
+            "user_id": user_id
+        }
+        return jsonify(response_data), 200
     else:
         return jsonify({"message": "Invalid credentials"}), 401
 
@@ -57,12 +62,18 @@ validate_jwt_token_bp = Blueprint("validate_jwt_login", __name__)
 @validate_jwt_token_bp.route('/api/auth/validate-token', methods=["GET"])
 def validate():
     token = request.headers.get("Authorization")
+    
     if validate_token(token):
         username = get_user_from_jwt(token)
         role = get_role_from_jwt(token)
         user_id = get_id_from_jwt(token)
-        return jsonify({"token": token, "username": username, "role": role, "user_id": user_id}), 200
-
+        response_data = {
+            "token": token, 
+            "username": username, 
+            "role": role, 
+            "user_id": user_id
+        }
+        return jsonify(response_data), 200
     else:
         return jsonify({"message": "Invalid credentials"}), 401
              

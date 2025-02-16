@@ -33,7 +33,8 @@ def init_sock(app):
 
                 message_type = data.get("type")
                 if message_type == "login":
-                    user_id = get_id_from_jwt(message)
+                    token = data.get("message")
+                    user_id = get_id_from_jwt(token)
                     user_username = user_model.get_user_with_id(user_id)['username']
                     websocket_pubsub.set(f"client:{user_id}", "connected")
                     pubsub.subscribe(f"ws:client:{user_id}")
@@ -50,5 +51,6 @@ def init_sock(app):
                     ws.send(json.dumps({"type":"echo","message":"hey I received an echo message"}))
                 
             except Exception as e:
-                ws.send('failed')
+                error_message = json.dumps({"type": "error", "message": str(e)})
+                ws.send(error_message)
                 print('An error occurred ', e )

@@ -47,9 +47,9 @@ class MessageType(StrEnum):
     DEBUG = 'debug'
 
 class PlatformStates(StrEnum):
-    PROCESSING = "processing"  
-    FINISHED = "finished"   
-    ERROR = "error"
+    PROCESSING = "Processing"  
+    COMPLETED = "Completed"   
+    ERROR = "Error"
 
 class Platforms(StrEnum):
     KALIBRR = "Kalibrr"
