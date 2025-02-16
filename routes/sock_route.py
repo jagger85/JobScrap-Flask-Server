@@ -6,19 +6,19 @@ from services import user_model
 import json
 import threading
 from flask import request
+from services.redis import WebSocketPubSub
 
 sock_bp = Blueprint('sock', __name__)
 sock = None
-pubsub = None
 
 def init_sock(app):
     global sock
     sock = Sock(app)
 
-
     @sock.route('/api/socket')
     def connect(ws):
-        pubsub = websocket_pubsub.pubsub()
+        redis_client = WebSocketPubSub()
+        pubsub = redis_client.pubsub()
         
         def redis_listener():
             while True:
@@ -36,7 +36,7 @@ def init_sock(app):
                     token = data.get("message")
                     user_id = get_id_from_jwt(token)
                     user_username = user_model.get_user_with_id(user_id)['username']
-                    websocket_pubsub.set(f"client:{user_id}", "connected")
+                    redis_client.set(f"client:{user_id}", "connected")
                     pubsub.subscribe(f"ws:client:{user_id}")
                     
                     # Start Redis listener in a separate thread

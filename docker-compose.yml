@@ -1,0 +1,110 @@
+version: '3.8'
+
+services:
+  app:
+    build: .
+    ports:
+      - '5001:5000'
+    environment:
+      - MONGODB_URI=${MONGODB_URI:-mongodb://mongodb:27017/jobsweep}
+      - JWT_SECRET_KEY=${JWT_SECRET_KEY}
+      - ENVIRONMENT=${ENVIRONMENT:-development}
+      - REDIS_URL=redis://redis:6379/2
+      - CELERY_BROKER_URL=redis://redis:6379/0
+      - CELERY_RESULT_BACKEND=redis://redis:6379/0
+      - redis_host=redis
+      - redis_port=6379
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      - WEBSOCKET_REDIS_URL=redis://redis:6379/2
+      - CORS_ORIGINS=http://localhost:5173,http://127.0.0.1:5173
+      - CORS_ALLOW_CREDENTIALS=true
+    volumes:
+      - .:/app
+    depends_on:
+      - mongodb
+      - redis
+    networks:
+      - jobsweep-network
+
+  mongodb:
+    image: mongo:latest
+    command: mongod --quiet --logpath /dev/null
+    ports:
+      - '27017:27017'
+    volumes:
+      - mongodb_data:/data/db
+    networks:
+      - jobsweep-network
+
+  redis:
+    image: redis:latest
+    ports:
+      - '6379:6379'
+    volumes:
+      - redis_data:/data
+    networks:
+      - jobsweep-network
+
+  redis-commander:
+    image: rediscommander/redis-commander
+    ports:
+      - '8081:8081'
+    environment:
+      - REDIS_HOSTS=redis:redis:6379:0,redis:redis:6379:1,redis:redis:6379:2
+    depends_on:
+      - redis
+    networks:
+      - jobsweep-network
+
+  celery-worker:
+    build: .
+    command: celery -A services.celery_worker worker --loglevel=info
+    volumes:
+      - .:/app
+    environment:
+      - MONGODB_URI=${MONGODB_URI:-mongodb://mongodb:27017/jobsweep}
+      - REDIS_URL=redis://redis:6379/2
+      - CELERY_BROKER_URL=redis://redis:6379/0
+      - CELERY_RESULT_BACKEND=redis://redis:6379/0
+      - redis_host=redis
+      - redis_port=6379
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      - WEBSOCKET_REDIS_URL=redis://redis:6379/2
+    depends_on:
+      - redis
+      - mongodb
+    networks:
+      - jobsweep-network
+
+  celery-beat:
+    build: .
+    command: celery -A services.celery_app.celery beat -S redbeat.RedBeatScheduler
+    volumes:
+      - .:/app
+    environment:
+      - MONGODB_URI=${MONGODB_URI:-mongodb://mongodb:27017/jobsweep}
+      - REDIS_URL=redis://redis:6379/2
+      - CELERY_BROKER_URL=redis://redis:6379/0
+      - CELERY_RESULT_BACKEND=redis://redis:6379/0
+      - REDBEAT_REDIS_URL=redis://redis:6379/1
+      - redis_host=redis
+      - redis_port=6379
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      - WEBSOCKET_REDIS_URL=redis://redis:6379/2
+    depends_on:
+      - redis
+      - mongodb
+      - celery-worker
+    networks:
+      - jobsweep-network
+
+networks:
+  jobsweep-network:
+    driver: bridge
+
+volumes:
+  mongodb_data:
+  redis_data:
