@@ -13,24 +13,43 @@ class OperationModel(BaseModel):
             data["created_at"] = datetime.utcnow()
             return self.create(data)
     
-    def get_all_operations(self, limit=10, cursor=None, sort_order='desc'):
+    
+    def get_all_operations(self):
+        return list(self.collection.find({}, {"_id": 0}))
+    
+    
+    def get_operations(self, limit=10, cursor=None, sort_order='desc', platform=None, user=None, search=None):
         query = {}
-        if cursor:
-            query['_id'] = {'$lt': ObjectId(cursor)}
+        if platform:
+            query['platform'] = platform
+        if user:
+            query['user'] = user
+        if search:
+            query['keywords'] = {'$regex': search, '$options': 'i'} # i for case insensitive
         
-        # Get one more than limit to determine if there's a next page
+        # Handle cursor-based pagination with sort order
+        if cursor:
+            cursor_obj = ObjectId(cursor)
+            if sort_order == 'asc':
+                query['_id'] = {'$gt': cursor_obj}
+            else:
+                query['_id'] = {'$lt': cursor_obj}
+        
+        # Determine sort direction
+        sort_direction = 1 if sort_order == 'asc' else -1
+        
+        # Execute query
         operations = list(self.collection.find(query)
-                        .sort('_id', -1 if sort_order == 'desc' else 1)  # Sort by _id descending
+                        .sort('_id', sort_direction)
                         .limit(limit + 1))
         
         has_next = len(operations) > limit
-        operations = operations[:limit]  # Remove the extra item
+        operations = operations[:limit]
         
-        # Convert ObjectIds to strings
+        # Convert ObjectIds to strings and format response
         for op in operations:
             op['_id'] = str(op['_id'])
         
-        # Only set next_cursor if we have operations and there's a next page
         next_cursor = operations[-1]['_id'] if operations and has_next else None
         
         return operations, next_cursor
