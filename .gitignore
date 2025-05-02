@@ -10,3 +10,4 @@ output/
 brightdata/outputs
 dump.rdb
 certs/
+.venv
