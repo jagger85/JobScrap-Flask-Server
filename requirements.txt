@@ -11,3 +11,4 @@ beautifulsoup4
 webdriver-manager
 bcrypt
 pymongo[srv]
+celery
