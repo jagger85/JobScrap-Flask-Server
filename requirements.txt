@@ -12,3 +12,6 @@ webdriver-manager
 bcrypt
 pymongo[srv]
 celery
+redis
+celery-redbeat
+flask-sock
