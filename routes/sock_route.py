@@ -1,11 +1,11 @@
 from flask import Blueprint
 from flask_sock import Sock
 from services import websocket_pubsub
-from helpers import get_id_from_jwt, get_user_from_jwt
+from helpers import get_id_from_jwt
 from services import user_model
 import json
 import threading
-from flask import request
+from simple_websocket.errors import ConnectionClosed
 
 sock_bp = Blueprint('sock', __name__)
 sock = None
@@ -15,19 +15,30 @@ def init_sock(app):
     global sock
     sock = Sock(app)
 
-
     @sock.route('/api/socket')
     def connect(ws):
         pubsub = websocket_pubsub.pubsub()
+        stop_thread = threading.Event()
         
         def redis_listener():
-            while True:
-                message = pubsub.get_message()
-                if message and message['type'] == 'message':
-                    ws.send(message['data'])
-        
-        while True:
             try:
+                while not stop_thread.is_set():
+                    message = pubsub.get_message()
+                    if message and message['type'] == 'message':
+                        try:
+                            ws.send(message['data'])
+                        except ConnectionClosed:
+                            stop_thread.set()
+                            break
+            except Exception as e:
+                print(f'Redis listener error: {e}')
+                stop_thread.set()
+            finally:
+                pubsub.unsubscribe()
+        
+        redis_thread = None
+        try:
+            while True:
                 message = ws.receive()
                 data = json.loads(message)
 
@@ -47,10 +58,17 @@ def init_sock(app):
                     ws.send(json.dumps({"type":"login", "message": f"You are currently subscribed to the channel {user_id}"}))
                 
                 elif message_type == "echo":
-                    print("Echo message received: ", message)
                     ws.send(json.dumps({"type":"echo","message":"hey I received an echo message"}))
                 
-            except Exception as e:
-                error_message = json.dumps({"type": "error", "message": str(e)})
-                ws.send(error_message)
-                print('An error occurred ', e )
+        except ConnectionClosed:
+            # Handle normal connection closure
+            pass
+        except Exception as e:
+            print(f'WebSocket error: {e}')
+        finally:
+            # Clean up resources
+            if redis_thread and redis_thread.is_alive():
+                stop_thread.set()
+                redis_thread.join(timeout=1.0)
+            if pubsub:
+                pubsub.close()
