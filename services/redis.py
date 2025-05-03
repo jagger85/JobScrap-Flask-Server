@@ -1,6 +1,6 @@
 import redis
 import json
-from constants import environment
+from constants import environment as env
 
 class Singleton(type):
     _instances = {}
@@ -13,9 +13,9 @@ class Singleton(type):
 class CeleryBroker(metaclass=Singleton):
     def __init__(self):
         self.redis = redis.StrictRedis(
-            host=environment["redis_host"],
-            port=int(environment["redis_port"]),
-            db=0,
+            host=env["redis_host"],
+            port=env["redis_port"],
+            db=env["redis_celery_db"],
             decode_responses=True,
         )
     
@@ -25,9 +25,9 @@ class CeleryBroker(metaclass=Singleton):
 class RedBeatScheduler(metaclass=Singleton):
     def __init__(self):
         self.redis = redis.StrictRedis(
-            host=environment["redis_host"],
-            port=int(environment["redis_port"]),
-            db=1,
+            host=env["redis_host"],
+            port=env["redis_port"],
+            db=env["redis_redbeat_db"],
             decode_responses=True,
         )
 
@@ -37,9 +37,9 @@ class RedBeatScheduler(metaclass=Singleton):
 class WebSocketPubSub(metaclass=Singleton):
     def __init__(self):
         self.redis = redis.StrictRedis(
-            host=environment["redis_host"],
-            port=int(environment["redis_port"]),
-            db=2,
+            host=env["redis_host"],
+            port=env["redis_port"],
+            db=env["redis_websocket_db"],
             decode_responses=True,
         )
 
