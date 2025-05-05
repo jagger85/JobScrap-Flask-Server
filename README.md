@@ -96,12 +96,3 @@ celery -A services.celery_app.celery beat -S redbeat.RedBeatScheduler
 
 #### Redis Commander
 Access the Redis management interface at http://localhost:8081
-
-## Networks and Volumes 🌐
-
-- **Network**: All services are connected through the `jobsweep-network`
-- **Volumes**: Redis data is persisted through the `redis_data` volume
-
-## Documentation 📚
-
-For more detailed information about the API endpoints and available features, please refer to the API documentation when the server is running.
